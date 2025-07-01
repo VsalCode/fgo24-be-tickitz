@@ -15,31 +15,58 @@ type User struct {
 	Email    string `json:"email"`
 	Password string `json:"password"`
 	Phone    string `json:"phone"`
+	Roles    string `json:"roles"`
 }
 
 func GetNewUser(req dto.RegisterRequest) (User, error) {
 	conn, err := utils.DBConnect()
-
 	if err != nil {
 		return User{}, err
 	}
 
 	tempName := strings.Split(req.Email, "@")
+	fullname := tempName[0]
 
-	rows, err := conn.Query(
+	var profileID int
+	err = conn.QueryRow(
+		context.Background(),
+		`INSERT INTO profiles (fullname, phone) VALUES ($1, $2) RETURNING id`,
+		fullname, "",
+	).Scan(&profileID)
+	if err != nil {
+		return User{}, err
+	}
+
+	var userId int
+	err = conn.QueryRow(
 		context.Background(),
 		`
-		INSERT INTO users (fullname, email, password, phone, roles) VALUES ($1, $2, $3, $4, user) RETURNING *
-		`,
-		tempName[0],
-	)
+				INSERT INTO users (email, password, roles, profile_id) VALUES ($1, $2, $3, $4) 
+				RETURNING id
+				`,
+		req.Email, req.Password, "user", profileID,
+	).Scan(&userId)
 
 	if err != nil {
 		return User{}, err
 	}
 
-	user, err := pgx.CollectOneRow[User](rows, pgx.RowToStructByName)
+	rows, err := conn.Query(
+		context.Background(),
+		`
+		SELECT u.id, p.fullname, u.email, u.password, p.phone, u.roles
+    FROM users u
+    JOIN profiles p ON u.profile_id = p.id
+    WHERE u.id = $1
+		`,
+		userId,
+	)
+	if err != nil {
+		return User{}, err
+	}
+	defer rows.Close()
 
+	user, err := pgx.CollectOneRow[User](rows, pgx.RowToStructByName)
 	if err != nil {
 		return User{}, err
 	}

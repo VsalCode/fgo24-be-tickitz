@@ -5,5 +5,5 @@ import (
 )
 
 func CombineRouters(r *gin.Engine){
-	authRouters(r.Group(""))
+	authRouters(r.Group("/auth"))
 }

@@ -5,27 +5,18 @@ import (
 	"be-cinevo/models"
 	"be-cinevo/utils"
 	"net/http"
-
 	"github.com/gin-gonic/gin"
 )
 
 func RegisterUser(ctx *gin.Context) {
 
 	req := dto.RegisterRequest{}
-	ctx.ShouldBind(&req)
-
-	if req.Email == "" || req.Password == "" || req.ConfirmPassword == "" {
+	err := ctx.ShouldBindJSON(&req)
+	if err != nil {
 		ctx.JSON(http.StatusBadRequest, utils.Response{
 			Success: false,
-			Message: "Email, password, and confirm password are required",
-		})
-		return
-	}
-
-	if req.Password != req.ConfirmPassword {
-		ctx.JSON(http.StatusBadRequest, utils.Response{
-			Success: false,
-			Message: "Password and confirm password do not match",
+			Message: "Invalid request format",
+			Errors:  err.Error(),
 		})
 		return
 	}
