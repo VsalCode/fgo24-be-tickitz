@@ -73,3 +73,27 @@ func GetNewUser(req dto.RegisterRequest) (User, error) {
 
 	return user, nil
 }
+
+func ValidateLogin(req dto.LoginRequest) (int, string, error) {
+	conn, err := utils.DBConnect()
+	if err != nil {
+		return 0, "", err
+	}
+
+	var userId int
+	var roles string
+	err = conn.QueryRow(
+		context.Background(),
+		`
+		SELECT id, roles FROM users WHERE email = $1 AND password = $2
+		
+		`,
+		req.Email, req.Password,
+	).Scan(&userId, &roles)
+
+	if err != nil {
+		return 0, "", err
+	}
+
+	return userId, roles, nil
+}

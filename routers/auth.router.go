@@ -7,5 +7,5 @@ import (
 
 func authRouters(r *gin.RouterGroup){
 	r.POST("/register", controllers.RegisterUser)
-	r.POST("/login")
+	r.POST("/login", controllers.LoginUser )
 } 

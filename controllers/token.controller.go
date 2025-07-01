@@ -6,10 +6,12 @@ import (
 	"time"
 )
 
-func generateToken(userId int) (string, error) {
+func generateToken(userId int, role string) (string, error) {
+
 	expirationTime := time.Now().Add(24 * time.Hour)
 	claims := jwt.MapClaims{
 		"userId": userId,
+		"role":   role,
 		"iat":    time.Now().Unix(),
 		"exp":    expirationTime.Unix(),
 	}
