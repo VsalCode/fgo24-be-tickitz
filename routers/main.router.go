@@ -1,9 +1,16 @@
-package routers;
+package routers
 
 import (
 	"github.com/gin-gonic/gin"
+
+	"be-cinevo/docs"
+
+	swaggerfiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
 )
 
-func CombineRouters(r *gin.Engine){
+func CombineRouters(r *gin.Engine) {
 	authRouters(r.Group("/auth"))
+	docs.SwaggerInfo.BasePath = "/"
+	r.GET("/docs/*any", ginSwagger.WrapHandler(swaggerfiles.Handler))
 }

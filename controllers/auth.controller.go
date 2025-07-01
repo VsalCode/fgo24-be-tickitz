@@ -10,6 +10,13 @@ import (
 	"github.com/joho/godotenv"
 )
 
+// @Summary Register a new user
+// @Description Register a new user with email and password
+// @Accept json
+// @Produce json
+// @Param user body dto.RegisterRequest true "User registration details"
+// @Success 201 {object} utils.Response{results=models.User}
+// @Router /auth/register [post]
 func RegisterUser(ctx *gin.Context) {
 
 	req := dto.RegisterRequest{}
@@ -42,6 +49,13 @@ func RegisterUser(ctx *gin.Context) {
 
 }
 
+// @Summary Login a user
+// @Description Login User
+// @Accept json
+// @Produce json
+// @Param user body dto.LoginRequest true "User login details"
+// @Success 200 {object} utils.Response{results=string}
+// @Router /auth/login [post]
 func LoginUser(ctx *gin.Context) {
 	godotenv.Load()
 

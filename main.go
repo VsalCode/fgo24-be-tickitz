@@ -8,6 +8,10 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// @Tittle Cinevo API
+// @Description API for Cinevo app
+// @Version 1.0
+// @BasePath /
 func main() {
 	db, err := utils.DBConnect()
 
