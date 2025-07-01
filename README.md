@@ -6,20 +6,11 @@
 erDiagram
   direction LR
 
-  admin ||--o{ movie : "manages"
-  admin {
-    int id PK
-    string email
-    string password
-    timestamp created_at
-    timestamp updated_at
-  }
-
-  movie ||--o{ movie_genres : "has"
-  movie ||--o{ movie_directors : "has"
-  movie ||--o{ movie_casts : "has"
-  movie ||--o{ transactions : "purchased"
-  movie {
+  movies ||--o{ movie_genres : "has"
+  movies ||--o{ movie_directors : "has"
+  movies ||--o{ movie_casts : "has"
+  movies ||--o{ transactions : "purchased"
+  movies {
     int id PK
     string title
     string overview
@@ -109,12 +100,22 @@ erDiagram
     timestamp updated_at
   }
 
+  users ||--o{ movies : "manages"
   users ||--o{ transactions : "makes"
+  users ||--|| profiles : "has"
   users {
     int id PK
-    string fullname
     string email
     string password
+    string roles "admin, user"
+    int profile_id FK
+    timestamp created_at
+    timestamp updated_at
+  }
+
+  profiles {
+    int id PK
+    string fullname
     string phone
     timestamp created_at
     timestamp updated_at

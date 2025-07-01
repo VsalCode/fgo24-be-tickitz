@@ -6,12 +6,25 @@ CREATE TABLE admin (
     updated_at TIMESTAMP WITHOUT TIME ZONE DEFAULT NOW()
 );
 
-CREATE TABLE users (
+CREATE TABLE profiles (
     id SERIAL PRIMARY KEY,
     fullname VARCHAR(255) NOT NULL,
+    phone VARCHAR(100),
+    created_at TIMESTAMP WITHOUT TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITHOUT TIME ZONE DEFAULT NOW()
+);
+
+CREATE TYPE list_roles AS ENUM (
+    'admin',
+    'user'
+);
+
+CREATE TABLE users (
+    id SERIAL PRIMARY KEY,
     email VARCHAR(255) UNIQUE NOT NULL,
     password VARCHAR(255) NOT NULL,
-    phone VARCHAR(100),
+    roles list_roles DEFAULT 'user',
+    profile_id INT REFERENCES profiles(id) ON DELETE SET NULL,
     created_at TIMESTAMP WITHOUT TIME ZONE DEFAULT NOW(),
     updated_at TIMESTAMP WITHOUT TIME ZONE DEFAULT NOW()
 );
@@ -44,7 +57,7 @@ CREATE TABLE payment_method (
     updated_at TIMESTAMP WITHOUT TIME ZONE DEFAULT NOW()
 );
 
-CREATE TABLE movie (
+CREATE TABLE movies (
     id SERIAL PRIMARY KEY,
     title VARCHAR(255) NOT NULL,
     overview TEXT,
@@ -66,7 +79,7 @@ CREATE TABLE movie_genres (
     movie_id INT,
     genre_id INT,
     PRIMARY KEY (movie_id, genre_id),
-    FOREIGN KEY (movie_id) REFERENCES movie (id) ON DELETE CASCADE,
+    FOREIGN KEY (movie_id) REFERENCES movies (id) ON DELETE CASCADE,
     FOREIGN KEY (genre_id) REFERENCES genres (id) ON DELETE CASCADE
 );
 
@@ -74,7 +87,7 @@ CREATE TABLE movie_directors (
     movie_id INT,
     director_id INT,
     PRIMARY KEY (movie_id, director_id),
-    FOREIGN KEY (movie_id) REFERENCES movie (id) ON DELETE CASCADE,
+    FOREIGN KEY (movie_id) REFERENCES movies (id) ON DELETE CASCADE,
     FOREIGN KEY (director_id) REFERENCES directors (id) ON DELETE CASCADE
 );
 
@@ -82,7 +95,7 @@ CREATE TABLE movie_casts (
     movie_id INT,
     cast_id INT,
     PRIMARY KEY (movie_id, cast_id),
-    FOREIGN KEY (movie_id) REFERENCES movie (id) ON DELETE CASCADE,
+    FOREIGN KEY (movie_id) REFERENCES movies (id) ON DELETE CASCADE,
     FOREIGN KEY (cast_id) REFERENCES casts (id) ON DELETE CASCADE
 );
 
@@ -97,7 +110,7 @@ CREATE TABLE transactions (
     show_time TIME NOT NULL,
     show_date DATE NOT NULL,
     user_id INT REFERENCES users (id) ON DELETE CASCADE,
-    movie_id INT REFERENCES movie (id) ON DELETE CASCADE,
+    movie_id INT REFERENCES movies (id) ON DELETE CASCADE,
     payment_method_id INT REFERENCES payment_method (id) ON DELETE RESTRICT,
     created_at TIMESTAMP WITHOUT TIME ZONE DEFAULT NOW(),
     updated_at TIMESTAMP WITHOUT TIME ZONE DEFAULT NOW()
