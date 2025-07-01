@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"be-cinevo/dto"
 	"be-cinevo/models"
 	"be-cinevo/utils"
 	"net/http"
@@ -10,7 +11,7 @@ import (
 
 func RegisterUser(ctx *gin.Context) {
 
-	req := models.RegisterRequest{}
+	req := dto.RegisterRequest{}
 	ctx.ShouldBind(&req)
 
 	if req.Email == "" || req.Password == "" || req.ConfirmPassword == "" {

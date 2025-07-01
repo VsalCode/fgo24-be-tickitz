@@ -1,6 +1,7 @@
 package models
 
 import (
+	"be-cinevo/dto"
 	"be-cinevo/utils"
 	"context"
 	"strings"
@@ -13,21 +14,10 @@ type User struct {
 	Fullname string `json:"fullname"`
 	Email    string `json:"email"`
 	Password string `json:"password"`
-	Phone string `json:"phone"`
+	Phone    string `json:"phone"`
 }
 
-type RegisterRequest struct {
-	Email    string `json:"email" binding:"required,email"`
-	Password string `json:"password" binding:"required,min=6"`
-	ConfirmPassword string `json:"confirm_password" binding:"required,eqfield=Password"`
-}
-
-type LoginRequest struct {
-	Email    string `json:"email" binding:"required,email"`
-	Password string `json:"password" binding:"required,min=6"`
-}
-
-func GetNewUser(req RegisterRequest) (User, error) {
+func GetNewUser(req dto.RegisterRequest) (User, error) {
 	conn, err := utils.DBConnect()
 
 	if err != nil {
@@ -39,7 +29,7 @@ func GetNewUser(req RegisterRequest) (User, error) {
 	rows, err := conn.Query(
 		context.Background(),
 		`
-		INSERT INTO users (fullname, email, password, phone) VALUES ($1, $2, $3, $4) RETURNING *
+		INSERT INTO users (fullname, email, password, phone, roles) VALUES ($1, $2, $3, $4, user) RETURNING *
 		`,
 		tempName[0],
 	)
