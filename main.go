@@ -1,9 +1,12 @@
 package main
 
 import (
+	"be-cinevo/routers"
 	"be-cinevo/utils"
 	"fmt"
-) 
+
+	"github.com/gin-gonic/gin"
+)
 
 func main() {
 	db, err := utils.DBConnect()
@@ -13,4 +16,9 @@ func main() {
 	}
 	defer db.Close()
 
+	r := gin.Default()
+	routers.CombineRouters(r)
+
+	fmt.Println("Server starting on port 8080...")
+	r.Run(":8080")
 }
