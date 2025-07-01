@@ -1,11 +1,4 @@
-CREATE TABLE admin (
-    id SERIAL PRIMARY KEY,
-    email VARCHAR(255) UNIQUE NOT NULL,
-    password VARCHAR(255) NOT NULL,
-    created_at TIMESTAMP WITHOUT TIME ZONE DEFAULT NOW(),
-    updated_at TIMESTAMP WITHOUT TIME ZONE DEFAULT NOW()
-);
-
+-- Active: 1751393237310@@127.0.0.1@5432@cinevodb
 CREATE TABLE profiles (
     id SERIAL PRIMARY KEY,
     fullname VARCHAR(255) NOT NULL,
@@ -70,7 +63,7 @@ CREATE TABLE movies (
     release_date DATE,
     runtime INT CHECK (runtime > 0),
     popularity INT DEFAULT 0,
-    admin_id INT REFERENCES admin (id) ON DELETE CASCADE,
+    admin_id INT REFERENCES users(id) ON DELETE CASCADE,
     created_at TIMESTAMP WITHOUT TIME ZONE DEFAULT NOW(),
     updated_at TIMESTAMP WITHOUT TIME ZONE DEFAULT NOW()
 );
@@ -123,6 +116,9 @@ CREATE TABLE transaction_details (
     created_at TIMESTAMP WITHOUT TIME ZONE DEFAULT NOW(),
     updated_at TIMESTAMP WITHOUT TIME ZONE DEFAULT NOW()
 );
+
+INSERT INTO users (email, password, roles, profile_id)
+VALUES ('admin@gmail.com', 'admin123', 'admin', NULL);
 
 CREATE OR REPLACE FUNCTION trigger_set_timestamp()
 RETURNS TRIGGER AS $$

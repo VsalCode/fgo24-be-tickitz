@@ -48,10 +48,23 @@ func VerifyToken() gin.HandlerFunc {
 			return
 		}
 
-		userIdFloat := rawToken.Claims.(jwt.MapClaims)["userId"]
+		claims, ok := rawToken.Claims.(jwt.MapClaims)
+		
+		if !ok || !rawToken.Valid {
+			ctx.JSON(http.StatusUnauthorized, utils.Response{
+				Success: false,
+				Message: "Token Invalid!",
+			})
+			ctx.AbortWithStatus(http.StatusUnauthorized)
+			return
+		}
+		
+		userIdFloat := claims["userId"]
 		userId := int(userIdFloat.(float64))
+		role := claims["role"].(string)
 
 		ctx.Set("userId", userId)
+		ctx.Set("role", role)
 		ctx.Next()
 	}
 }
