@@ -7,6 +7,7 @@ import (
 )
 
 func movieRouters(r *gin.RouterGroup){
-	r.GET("/now-showing", controllers.NowShowingMovies)
-	r.GET("/upcoming", controllers.UpComingMovies)
+	r.GET("", controllers.GetAllMovies)
+	r.GET("/now-showing", controllers.GetNowShowingMovies)
+	r.GET("/upcoming", controllers.GetUpComingMovies)
 }
