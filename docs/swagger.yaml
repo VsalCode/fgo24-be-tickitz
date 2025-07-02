@@ -28,6 +28,45 @@ definitions:
     - email
     - password
     type: object
+  dto.MovieRequest:
+    properties:
+      backdrop_path:
+        type: string
+      casts:
+        items:
+          type: integer
+        type: array
+      directors:
+        items:
+          type: integer
+        type: array
+      genres:
+        items:
+          type: integer
+        type: array
+      overview:
+        type: string
+      poster_path:
+        type: string
+      release_date:
+        type: string
+      runtime:
+        minimum: 1
+        type: integer
+      title:
+        type: string
+      vote_average:
+        maximum: 10
+        minimum: 0
+        type: integer
+    required:
+    - casts
+    - directors
+    - genres
+    - runtime
+    - title
+    - vote_average
+    type: object
   dto.RegisterRequest:
     properties:
       confirmPassword:
@@ -79,6 +118,39 @@ info:
   description: API for Cinevo app
   version: "1.0"
 paths:
+  /admin:
+    post:
+      consumes:
+      - application/json
+      description: Add a new movie with genres, directors, and casts to the database
+      parameters:
+      - description: Movie data
+        in: body
+        name: movie
+        required: true
+        schema:
+          $ref: '#/definitions/dto.MovieRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            allOf:
+            - $ref: '#/definitions/utils.Response'
+            - properties:
+                ' Message':
+                  type: string
+                ' Results':
+                  type: object
+                Success:
+                  type: boolean
+              type: object
+      security:
+      - BearerAuth: []
+      summary: Add a new movie
+      tags:
+      - Movies
   /auth/forgot-password:
     post:
       consumes:
@@ -169,4 +241,9 @@ paths:
           schema:
             $ref: '#/definitions/utils.Response'
       summary: Reset Password
+securityDefinitions:
+  BearerAuth:
+    in: header
+    name: Authorization
+    type: apiKey
 swagger: "2.0"

@@ -12,6 +12,10 @@ import (
 // @Description API for Cinevo app
 // @Version 1.0
 // @BasePath /
+
+// @securityDefinitions.apikey BearerAuth
+// @in header
+// @name Authorization
 func main() {
 	db, err := utils.DBConnect()
 
