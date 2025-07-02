@@ -4,7 +4,9 @@ import (
 	"be-cinevo/dto"
 	"be-cinevo/utils"
 	"context"
+	"math/rand"
 	"strings"
+	"time"
 
 	"github.com/jackc/pgx/v5"
 )
@@ -17,6 +19,13 @@ type User struct {
 	Phone    string `json:"phone"`
 	Roles    string `json:"roles"`
 }
+
+type tempDataVerif struct {
+	Email string `json:"email"`
+	Code  string `json:"code"`
+}
+
+var Tempdata tempDataVerif
 
 func GetNewUser(req dto.RegisterRequest) (User, error) {
 	conn, err := utils.DBConnect()
@@ -96,4 +105,57 @@ func ValidateLogin(req dto.LoginRequest) (int, string, error) {
 	}
 
 	return userId, roles, nil
+}
+
+func SendVerificationCode(email string) (string, error) {
+    conn, err := utils.DBConnect()
+    if err != nil {
+        return "", err
+    }
+
+    var exists bool
+    err = conn.QueryRow(
+        context.Background(),
+        `SELECT EXISTS(SELECT 1 FROM users WHERE email=$1)`,
+        email,
+    ).Scan(&exists)
+    if err != nil {
+        return "", err
+    }
+    if !exists {
+			return "", err
+		}
+
+    rand.Seed(time.Now().UnixNano())
+    digits := "0123456789"
+    code := make([]byte, 6)
+    for i := range code {
+        code[i] = digits[rand.Intn(len(digits))]
+    }
+    verificationCode := string(code)
+
+    _, err = conn.Exec(
+        context.Background(),
+        `UPDATE users SET verification_code=$1 WHERE email=$2`,
+        verificationCode, email,
+    )
+    if err != nil {
+        return "", err
+    }
+
+    return verificationCode, nil
+}
+
+func SendNewPassword(req dto.ForgotPasswordRequest) error {
+	conn, err := utils.DBConnect()
+	if err != nil {
+		return err
+	}
+
+	_, err = conn.Exec(
+		context.Background(),
+		`UPDATE users SET password=$1, verification_code=NULL WHERE email=$2`,
+		req.NewPassword, req.Email,
+	)
+	return err
 }

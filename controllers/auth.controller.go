@@ -70,7 +70,7 @@ func LoginUser(ctx *gin.Context) {
 		return
 	}
 
-	userId, role, err := models.ValidateLogin(req)	
+	userId, role, err := models.ValidateLogin(req)
 	if err != nil {
 		ctx.JSON(http.StatusUnauthorized, utils.Response{
 			Success: false,
@@ -95,3 +95,55 @@ func LoginUser(ctx *gin.Context) {
 		Results: token,
 	})
 }
+
+func ForgotPassword(ctx *gin.Context) {
+	var email string
+	ctx.ShouldBind(&email)
+
+	code, err := models.SendVerificationCode(email)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, utils.Response{
+			Success: false,
+			Message: "Failed to send verification code",
+			Errors:  err.Error(),
+		})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, utils.Response{
+		Success: true,
+		Message: "Verification code sent successfully",
+		Results: map[string]string{"code OTP": code},
+	})
+
+	}	
+
+func ResetPassword(ctx *gin.Context) {
+	req := dto.ForgotPasswordRequest{}
+
+	err := ctx.ShouldBindJSON(&req)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, utils.Response{
+			Success: false,
+			Message: "Invalid request format",
+			Errors:  err.Error(),
+		})
+		return
+	}
+	
+	err = models.SendNewPassword(req)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, utils.Response{
+			Success: false,
+			Message: "Failed to reset password",
+			Errors:  err.Error(),
+		})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, utils.Response{
+		Success: true,
+		Message: "Password reset successful",
+	})
+}
+
