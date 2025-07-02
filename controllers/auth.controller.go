@@ -107,7 +107,7 @@ func ForgotPassword(ctx *gin.Context) {
 	req := dto.VerifyEmail{}
 	ctx.ShouldBindJSON(&req)
 
-	err := models.SendVerificationCode(req.Email)
+	result, err := models.SendVerificationCode(req.Email)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, utils.Response{
 			Success: false,
@@ -117,12 +117,22 @@ func ForgotPassword(ctx *gin.Context) {
 		return
 	}
 
+	err = utils.SendEmailOTP(req.Email, result.VerificationCode)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, utils.Response{
+			Success: false,
+			Message: "Failed to send email",
+			Errors:  err.Error(),
+		})
+		return
+	}
+
 	ctx.JSON(http.StatusOK, utils.Response{
 		Success: true,
-		Message: "Verification code send to your email",
+		Message: "Verification code sended to your email!",
 	})
 
-	}	
+}
 
 // @Summary Reset Password
 // @Description Reset user password using verification code
@@ -143,7 +153,7 @@ func ResetPassword(ctx *gin.Context) {
 		})
 		return
 	}
-	
+
 	err = models.SendNewPassword(req)
 	if err != nil {
 		ctx.JSON(http.StatusBadRequest, utils.Response{
@@ -159,4 +169,3 @@ func ResetPassword(ctx *gin.Context) {
 		Message: "Password reset successful",
 	})
 }
-

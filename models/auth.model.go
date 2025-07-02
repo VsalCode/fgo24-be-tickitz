@@ -4,12 +4,10 @@ import (
 	"be-cinevo/dto"
 	"be-cinevo/utils"
 	"context"
-	"math/rand"
 	"strings"
 	"time"
 	"github.com/redis/go-redis/v9"
 	"github.com/jackc/pgx/v5"
-	"fmt"
 )
 
 type User struct {
@@ -101,10 +99,10 @@ func ValidateLogin(req dto.LoginRequest) (int, string, error) {
 	return userId, roles, nil
 }
 
-func SendVerificationCode(email string) error {
+func SendVerificationCode(email string) (dto.OTP, error) {
     conn, err := utils.DBConnect()
     if err != nil {
-        return err
+        return dto.OTP{}, err
     }
 
     var exists bool
@@ -114,37 +112,28 @@ func SendVerificationCode(email string) error {
         email,
     ).Scan(&exists)
     if err != nil {
-        return err
+        return dto.OTP{}, err
     }
     if !exists {
-        return fmt.Errorf("email not found")
+        return dto.OTP{}, err
     }
 
-    rand.Seed(time.Now().UnixNano())
-    digits := "0123456789"
-    code := make([]byte, 6)
-    for i := range code {
-        code[i] = digits[rand.Intn(len(digits))]
-    }
-    verificationCode := string(code)
+    verificationCode := utils.GenerateOTP(6)
+		
+		result := dto.OTP{
+				Email:              email,
+				VerificationCode: verificationCode,
+		}
 
     ctx := context.Background()
     key := "otp:" + email
     err = utils.RedisClient.Set(ctx, key, verificationCode, 2*time.Minute).Err()
     if err != nil {
-        return fmt.Errorf("failed to save OTP to Redis")
+        return dto.OTP{}, err
     }
 
-    // _, err = conn.Exec(
-    //     context.Background(),
-    //     `UPDATE users SET verification_code=$1 WHERE email=$2`,
-    //     verificationCode, email,
-    // )
-    // if err != nil {
-    //     return fmt.Errorf("failed to save OTP to DB: %v", err)
-    // }
 
-    return nil
+    return result, nil
 }
 
 func SendNewPassword(req dto.ForgotPasswordRequest) error {
