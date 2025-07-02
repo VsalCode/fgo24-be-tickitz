@@ -11,6 +11,7 @@ import (
 
 func CombineRouters(r *gin.Engine) {
 	authRouters(r.Group("/auth"))
+	movieRouters(r.Group("/movies"))
 	docs.SwaggerInfo.BasePath = "/"
 	r.GET("/docs/*any", ginSwagger.WrapHandler(swaggerfiles.Handler))
 }
