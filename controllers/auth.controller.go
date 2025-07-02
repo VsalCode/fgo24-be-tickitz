@@ -96,11 +96,18 @@ func LoginUser(ctx *gin.Context) {
 	})
 }
 
+// @Summary Forgot Password
+// @Description Get OTP
+// @Accept json
+// @Produce json
+// @Param email body dto.VerifyEmail true "Email address to send verification code"
+// @Success 200 {object} utils.Response
+// @Router /auth/forgot-password [post]
 func ForgotPassword(ctx *gin.Context) {
-	var email string
-	ctx.ShouldBind(&email)
+	req := dto.VerifyEmail{}
+	ctx.ShouldBindJSON(&req)
 
-	code, err := models.SendVerificationCode(email)
+	err := models.SendVerificationCode(req.Email)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, utils.Response{
 			Success: false,
@@ -112,12 +119,18 @@ func ForgotPassword(ctx *gin.Context) {
 
 	ctx.JSON(http.StatusOK, utils.Response{
 		Success: true,
-		Message: "Verification code sent successfully",
-		Results: map[string]string{"code OTP": code},
+		Message: "Verification code send to your email",
 	})
 
 	}	
 
+// @Summary Reset Password
+// @Description Reset user password using verification code
+// @Accept json
+// @Produce json
+// @Param request body dto.ForgotPasswordRequest true "Forgot password request"
+// @Success 200 {object} utils.Response
+// @Router /auth/reset-password [post]
 func ResetPassword(ctx *gin.Context) {
 	req := dto.ForgotPasswordRequest{}
 

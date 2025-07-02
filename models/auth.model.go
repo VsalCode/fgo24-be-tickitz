@@ -7,8 +7,9 @@ import (
 	"math/rand"
 	"strings"
 	"time"
-
+	"github.com/redis/go-redis/v9"
 	"github.com/jackc/pgx/v5"
+	"fmt"
 )
 
 type User struct {
@@ -19,13 +20,6 @@ type User struct {
 	Phone    string `json:"phone"`
 	Roles    string `json:"roles"`
 }
-
-type tempDataVerif struct {
-	Email string `json:"email"`
-	Code  string `json:"code"`
-}
-
-var Tempdata tempDataVerif
 
 func GetNewUser(req dto.RegisterRequest) (User, error) {
 	conn, err := utils.DBConnect()
@@ -107,10 +101,10 @@ func ValidateLogin(req dto.LoginRequest) (int, string, error) {
 	return userId, roles, nil
 }
 
-func SendVerificationCode(email string) (string, error) {
+func SendVerificationCode(email string) error {
     conn, err := utils.DBConnect()
     if err != nil {
-        return "", err
+        return err
     }
 
     var exists bool
@@ -120,11 +114,11 @@ func SendVerificationCode(email string) (string, error) {
         email,
     ).Scan(&exists)
     if err != nil {
-        return "", err
+        return err
     }
     if !exists {
-			return "", err
-		}
+        return fmt.Errorf("email not found")
+    }
 
     rand.Seed(time.Now().UnixNano())
     digits := "0123456789"
@@ -134,28 +128,54 @@ func SendVerificationCode(email string) (string, error) {
     }
     verificationCode := string(code)
 
-    _, err = conn.Exec(
-        context.Background(),
-        `UPDATE users SET verification_code=$1 WHERE email=$2`,
-        verificationCode, email,
-    )
+    ctx := context.Background()
+    key := "otp:" + email
+    err = utils.RedisClient.Set(ctx, key, verificationCode, 2*time.Minute).Err()
     if err != nil {
-        return "", err
+        return fmt.Errorf("failed to save OTP to Redis")
     }
 
-    return verificationCode, nil
+    // _, err = conn.Exec(
+    //     context.Background(),
+    //     `UPDATE users SET verification_code=$1 WHERE email=$2`,
+    //     verificationCode, email,
+    // )
+    // if err != nil {
+    //     return fmt.Errorf("failed to save OTP to DB: %v", err)
+    // }
+
+    return nil
 }
 
 func SendNewPassword(req dto.ForgotPasswordRequest) error {
-	conn, err := utils.DBConnect()
-	if err != nil {
-		return err
-	}
+    ctx := context.Background()
+    key := "otp:" + req.Email
 
-	_, err = conn.Exec(
-		context.Background(),
-		`UPDATE users SET password=$1, verification_code=NULL WHERE email=$2`,
-		req.NewPassword, req.Email,
-	)
-	return err
+    storedCode, err := utils.RedisClient.Get(ctx, key).Result()
+    if err == redis.Nil {
+        return err
+    }
+    if err != nil {
+        return err
+    }
+    if storedCode != req.VerificationCode {
+        return err
+    }
+
+    conn, err := utils.DBConnect()
+    if err != nil {
+        return err
+    }
+    _, err = conn.Exec(
+        context.Background(),
+        `UPDATE users SET password=$1 WHERE email=$2`,
+        req.NewPassword, req.Email,
+    )
+    if err != nil {
+        return err
+    }
+
+    utils.RedisClient.Del(ctx, key)
+
+    return nil
 }

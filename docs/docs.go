@@ -15,6 +15,37 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/auth/forgot-password": {
+            "post": {
+                "description": "Get OTP",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "Forgot Password",
+                "parameters": [
+                    {
+                        "description": "Email address to send verification code",
+                        "name": "email",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.VerifyEmail"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/utils.Response"
+                        }
+                    }
+                }
+            }
+        },
         "/auth/login": {
             "post": {
                 "description": "Login User",
@@ -100,9 +131,64 @@ const docTemplate = `{
                     }
                 }
             }
+        },
+        "/auth/reset-password": {
+            "post": {
+                "description": "Reset user password using verification code",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "summary": "Reset Password",
+                "parameters": [
+                    {
+                        "description": "Forgot password request",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.ForgotPasswordRequest"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/utils.Response"
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {
+        "dto.ForgotPasswordRequest": {
+            "type": "object",
+            "required": [
+                "code",
+                "confirmNewPassword",
+                "email",
+                "newPassword"
+            ],
+            "properties": {
+                "code": {
+                    "type": "string"
+                },
+                "confirmNewPassword": {
+                    "type": "string"
+                },
+                "email": {
+                    "type": "string"
+                },
+                "newPassword": {
+                    "type": "string",
+                    "minLength": 6
+                }
+            }
+        },
         "dto.LoginRequest": {
             "type": "object",
             "required": [
@@ -136,6 +222,17 @@ const docTemplate = `{
                 "password": {
                     "type": "string",
                     "minLength": 6
+                }
+            }
+        },
+        "dto.VerifyEmail": {
+            "type": "object",
+            "required": [
+                "email"
+            ],
+            "properties": {
+                "email": {
+                    "type": "string"
                 }
             }
         },

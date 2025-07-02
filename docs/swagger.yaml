@@ -1,5 +1,22 @@
 basePath: /
 definitions:
+  dto.ForgotPasswordRequest:
+    properties:
+      code:
+        type: string
+      confirmNewPassword:
+        type: string
+      email:
+        type: string
+      newPassword:
+        minLength: 6
+        type: string
+    required:
+    - code
+    - confirmNewPassword
+    - email
+    - newPassword
+    type: object
   dto.LoginRequest:
     properties:
       email:
@@ -24,6 +41,13 @@ definitions:
     - confirmPassword
     - email
     - password
+    type: object
+  dto.VerifyEmail:
+    properties:
+      email:
+        type: string
+    required:
+    - email
     type: object
   models.User:
     properties:
@@ -55,6 +79,26 @@ info:
   description: API for Cinevo app
   version: "1.0"
 paths:
+  /auth/forgot-password:
+    post:
+      consumes:
+      - application/json
+      description: Get OTP
+      parameters:
+      - description: Email address to send verification code
+        in: body
+        name: email
+        required: true
+        schema:
+          $ref: '#/definitions/dto.VerifyEmail'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.Response'
+      summary: Forgot Password
   /auth/login:
     post:
       consumes:
@@ -105,4 +149,24 @@ paths:
                   $ref: '#/definitions/models.User'
               type: object
       summary: Register a new user
+  /auth/reset-password:
+    post:
+      consumes:
+      - application/json
+      description: Reset user password using verification code
+      parameters:
+      - description: Forgot password request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/dto.ForgotPasswordRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.Response'
+      summary: Reset Password
 swagger: "2.0"
