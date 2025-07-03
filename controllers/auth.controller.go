@@ -12,6 +12,7 @@ import (
 
 // @Summary Register a new user
 // @Description Register a new user with email and password
+// @Tags Auth
 // @Accept json
 // @Produce json
 // @Param user body dto.RegisterRequest true "User registration details"
@@ -51,6 +52,7 @@ func RegisterUser(ctx *gin.Context) {
 
 // @Summary Login a user
 // @Description Login User
+// @Tags Auth
 // @Accept json
 // @Produce json
 // @Param user body dto.LoginRequest true "User login details"
@@ -98,6 +100,7 @@ func LoginUser(ctx *gin.Context) {
 
 // @Summary Forgot Password
 // @Description Get OTP
+// @Tags Auth
 // @Accept json
 // @Produce json
 // @Param email body dto.VerifyEmail true "Email address to send verification code"
@@ -136,6 +139,7 @@ func ForgotPassword(ctx *gin.Context) {
 
 // @Summary Reset Password
 // @Description Reset user password using verification code
+// @Tags Auth
 // @Accept json
 // @Produce json
 // @Param request body dto.ForgotPasswordRequest true "Forgot password request"

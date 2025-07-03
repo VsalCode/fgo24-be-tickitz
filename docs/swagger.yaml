@@ -88,6 +88,45 @@ definitions:
     required:
     - email
     type: object
+  models.Movie:
+    properties:
+      admin_id:
+        type: integer
+      backdrop_path:
+        type: string
+      casts:
+        items:
+          type: string
+        type: array
+      created_at:
+        type: string
+      directors:
+        items:
+          type: string
+        type: array
+      genres:
+        items:
+          type: string
+        type: array
+      id:
+        type: integer
+      overview:
+        type: string
+      popularity:
+        type: integer
+      poster_path:
+        type: string
+      release_date:
+        type: string
+      runtime:
+        type: integer
+      title:
+        type: string
+      updated_at:
+        type: string
+      vote_average:
+        type: integer
+    type: object
   models.User:
     properties:
       email:
@@ -122,7 +161,7 @@ paths:
     post:
       consumes:
       - application/json
-      description: Add a new movie with genres, directors, and casts to the database
+      description: Add a new movie (admin only)
       parameters:
       - description: Movie data
         in: body
@@ -136,21 +175,12 @@ paths:
         "201":
           description: Created
           schema:
-            allOf:
-            - $ref: '#/definitions/utils.Response'
-            - properties:
-                ' Message':
-                  type: string
-                ' Results':
-                  type: object
-                Success:
-                  type: boolean
-              type: object
+            $ref: '#/definitions/utils.Response'
       security:
       - BearerAuth: []
       summary: Add a new movie
       tags:
-      - Movies
+      - Admin
   /auth/forgot-password:
     post:
       consumes:
@@ -171,6 +201,8 @@ paths:
           schema:
             $ref: '#/definitions/utils.Response'
       summary: Forgot Password
+      tags:
+      - Auth
   /auth/login:
     post:
       consumes:
@@ -196,6 +228,8 @@ paths:
                   type: string
               type: object
       summary: Login a user
+      tags:
+      - Auth
   /auth/register:
     post:
       consumes:
@@ -221,6 +255,8 @@ paths:
                   $ref: '#/definitions/models.User'
               type: object
       summary: Register a new user
+      tags:
+      - Auth
   /auth/reset-password:
     post:
       consumes:
@@ -241,6 +277,80 @@ paths:
           schema:
             $ref: '#/definitions/utils.Response'
       summary: Reset Password
+      tags:
+      - Auth
+  /movies:
+    get:
+      description: Retrieve all movies
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/utils.Response'
+            - properties:
+                results:
+                  items:
+                    $ref: '#/definitions/models.Movie'
+                  type: array
+              type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.Response'
+      summary: Get all movies
+      tags:
+      - Movies
+  /movies/now-showing:
+    get:
+      description: Retrieve movies that are now showing
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/utils.Response'
+            - properties:
+                results:
+                  items:
+                    $ref: '#/definitions/models.Movie'
+                  type: array
+              type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.Response'
+      summary: Get now showing movies
+      tags:
+      - Movies
+  /movies/upcoming:
+    get:
+      description: Retrieve upcoming movies
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/utils.Response'
+            - properties:
+                results:
+                  items:
+                    $ref: '#/definitions/models.Movie'
+                  type: array
+              type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.Response'
+      summary: Get upcoming movies
+      tags:
+      - Movies
 securityDefinitions:
   BearerAuth:
     in: header

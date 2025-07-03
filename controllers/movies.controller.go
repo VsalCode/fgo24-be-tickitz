@@ -8,6 +8,14 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// GetAllMovies godoc
+// @Summary Get all movies
+// @Description Retrieve all movies
+// @Tags Movies
+// @Produce json
+// @Success 200 {object} utils.Response{results=[]models.Movie}
+// @Failure 500 {object} utils.Response
+// @Router /movies [get]
 func GetAllMovies(ctx *gin.Context) {
 	movies, err := models.FindAllMovies("all")
 	if err != nil {
@@ -26,7 +34,14 @@ func GetAllMovies(ctx *gin.Context) {
 	})
 }
 
-
+// GetNowShowingMovies godoc
+// @Summary Get now showing movies
+// @Description Retrieve movies that are now showing
+// @Tags Movies
+// @Produce json
+// @Success 200 {object} utils.Response{results=[]models.Movie}
+// @Failure 500 {object} utils.Response
+// @Router /movies/now-showing [get]
 func GetNowShowingMovies(ctx *gin.Context){
 	movies, err := models.FindAllMovies("showing")
 	if err != nil {
@@ -45,6 +60,14 @@ func GetNowShowingMovies(ctx *gin.Context){
 	})
 }
 
+// GetUpComingMovies godoc
+// @Summary Get upcoming movies
+// @Description Retrieve upcoming movies
+// @Tags Movies
+// @Produce json
+// @Success 200 {object} utils.Response{results=[]models.Movie}
+// @Failure 500 {object} utils.Response
+// @Router /movies/upcoming [get]
 func GetUpComingMovies(ctx *gin.Context){
 	movies, err := models.FindAllMovies("upcoming")
 	if err != nil {

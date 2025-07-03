@@ -8,6 +8,16 @@ import (
 	"net/http"
 )
 
+// AddMovie godoc
+// @Summary Add a new movie
+// @Description Add a new movie (admin only)
+// @Tags Admin
+// @Accept json
+// @Produce json
+// @Param movie body dto.MovieRequest true "Movie data"
+// @Success 201 {object} utils.Response
+// @Security BearerAuth
+// @Router /admin [post]
 func AddMovie(ctx *gin.Context) {
 	role, _ := ctx.Get("role")
 	if role != "admin" {

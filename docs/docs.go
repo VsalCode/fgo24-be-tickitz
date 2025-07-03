@@ -22,7 +22,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Add a new movie with genres, directors, and casts to the database",
+                "description": "Add a new movie (admin only)",
                 "consumes": [
                     "application/json"
                 ],
@@ -30,7 +30,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Movies"
+                    "Admin"
                 ],
                 "summary": "Add a new movie",
                 "parameters": [
@@ -48,25 +48,7 @@ const docTemplate = `{
                     "201": {
                         "description": "Created",
                         "schema": {
-                            "allOf": [
-                                {
-                                    "$ref": "#/definitions/utils.Response"
-                                },
-                                {
-                                    "type": "object",
-                                    "properties": {
-                                        " Message": {
-                                            "type": "string"
-                                        },
-                                        " Results": {
-                                            "type": "object"
-                                        },
-                                        "Success": {
-                                            "type": "boolean"
-                                        }
-                                    }
-                                }
-                            ]
+                            "$ref": "#/definitions/utils.Response"
                         }
                     }
                 }
@@ -80,6 +62,9 @@ const docTemplate = `{
                 ],
                 "produces": [
                     "application/json"
+                ],
+                "tags": [
+                    "Auth"
                 ],
                 "summary": "Forgot Password",
                 "parameters": [
@@ -111,6 +96,9 @@ const docTemplate = `{
                 ],
                 "produces": [
                     "application/json"
+                ],
+                "tags": [
+                    "Auth"
                 ],
                 "summary": "Login a user",
                 "parameters": [
@@ -155,6 +143,9 @@ const docTemplate = `{
                 "produces": [
                     "application/json"
                 ],
+                "tags": [
+                    "Auth"
+                ],
                 "summary": "Register a new user",
                 "parameters": [
                     {
@@ -198,6 +189,9 @@ const docTemplate = `{
                 "produces": [
                     "application/json"
                 ],
+                "tags": [
+                    "Auth"
+                ],
                 "summary": "Reset Password",
                 "parameters": [
                     {
@@ -213,6 +207,129 @@ const docTemplate = `{
                 "responses": {
                     "200": {
                         "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/utils.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/movies": {
+            "get": {
+                "description": "Retrieve all movies",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Movies"
+                ],
+                "summary": "Get all movies",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/utils.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "results": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/definitions/models.Movie"
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/utils.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/movies/now-showing": {
+            "get": {
+                "description": "Retrieve movies that are now showing",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Movies"
+                ],
+                "summary": "Get now showing movies",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/utils.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "results": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/definitions/models.Movie"
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/utils.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/movies/upcoming": {
+            "get": {
+                "description": "Retrieve upcoming movies",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Movies"
+                ],
+                "summary": "Get upcoming movies",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/utils.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "results": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/definitions/models.Movie"
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
                         "schema": {
                             "$ref": "#/definitions/utils.Response"
                         }
@@ -345,6 +462,65 @@ const docTemplate = `{
             "properties": {
                 "email": {
                     "type": "string"
+                }
+            }
+        },
+        "models.Movie": {
+            "type": "object",
+            "properties": {
+                "admin_id": {
+                    "type": "integer"
+                },
+                "backdrop_path": {
+                    "type": "string"
+                },
+                "casts": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "directors": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "genres": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "overview": {
+                    "type": "string"
+                },
+                "popularity": {
+                    "type": "integer"
+                },
+                "poster_path": {
+                    "type": "string"
+                },
+                "release_date": {
+                    "type": "string"
+                },
+                "runtime": {
+                    "type": "integer"
+                },
+                "title": {
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                },
+                "vote_average": {
+                    "type": "integer"
                 }
             }
         },
