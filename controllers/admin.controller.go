@@ -28,7 +28,7 @@ func AddMovie(ctx *gin.Context) {
 		return
 	}
 
-	result, err := models.CreateNewMovie(req)
+	err := models.CreateNewMovie(req)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, utils.Response{
 			Success: false,
@@ -41,6 +41,5 @@ func AddMovie(ctx *gin.Context) {
 	ctx.JSON(http.StatusCreated, utils.Response{
 		Success: true,
 		Message: "Movie added successfully",
-		Results: result,
 	})
 }
