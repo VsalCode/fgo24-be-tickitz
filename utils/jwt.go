@@ -1,4 +1,4 @@
-package controllers
+package utils;
 
 import (
 	"github.com/golang-jwt/jwt/v5"
@@ -6,7 +6,7 @@ import (
 	"time"
 )
 
-func generateToken(userId int, role string) (string, error) {
+func GenerateToken(userId int, role string) (string, error) {
 
 	expirationTime := time.Now().Add(24 * time.Hour)
 	claims := jwt.MapClaims{

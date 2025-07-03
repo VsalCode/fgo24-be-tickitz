@@ -81,7 +81,7 @@ func LoginUser(ctx *gin.Context) {
 		})
 	}
 
-	token, err := generateToken(userId, role)
+	token, err := utils.GenerateToken(userId, role)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, utils.Response{
 			Success: false,
