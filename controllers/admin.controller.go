@@ -56,6 +56,16 @@ func AddMovie(ctx *gin.Context) {
 	})
 }
 
+// DeleteMovie godoc
+// @Summary Delete a movie
+// @Description Delete movie by movie id (admin only)
+// @Tags Admin
+// @Accept json
+// @Produce json
+// @Param id path int true "Movie ID"
+// @Success 200 {object} utils.Response
+// @Security BearerAuth
+// @Router /admin/{id} [delete]
 func DeleteMovie(ctx *gin.Context) {
 	role, _ := ctx.Get("role")
 	if role != "admin" {
@@ -93,6 +103,18 @@ func DeleteMovie(ctx *gin.Context) {
 	})
 }
 
+
+// UpdateMovies godoc
+// @Summary Update a movie
+// @Description Update movie by movie id (admin only)
+// @Tags Admin
+// @Accept json
+// @Produce json
+// @Param id path int true "Movie ID"
+// @Param movie body models.UpdatedMovie true "Movie data to update"
+// @Success 200 {object} utils.Response
+// @Security BearerAuth
+// @Router /admin/{id} [patch]
 func UpdateMovies(ctx *gin.Context) {
 	role, _ := ctx.Get("role")
 	if role != "admin" {

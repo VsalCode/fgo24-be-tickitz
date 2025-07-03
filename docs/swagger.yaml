@@ -127,6 +127,23 @@ definitions:
       vote_average:
         type: integer
     type: object
+  models.UpdatedMovie:
+    properties:
+      backdrop_path:
+        type: string
+      overview:
+        type: string
+      poster_path:
+        type: string
+      release_date:
+        type: string
+      runtime:
+        type: integer
+      title:
+        type: string
+      vote_average:
+        type: integer
+    type: object
   models.User:
     properties:
       email:
@@ -179,6 +196,57 @@ paths:
       security:
       - BearerAuth: []
       summary: Add a new movie
+      tags:
+      - Admin
+  /admin/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete movie by movie id (admin only)
+      parameters:
+      - description: Movie ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.Response'
+      security:
+      - BearerAuth: []
+      summary: Delete a movie
+      tags:
+      - Admin
+    patch:
+      consumes:
+      - application/json
+      description: Update movie by movie id (admin only)
+      parameters:
+      - description: Movie ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Movie data to update
+        in: body
+        name: movie
+        required: true
+        schema:
+          $ref: '#/definitions/models.UpdatedMovie'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.Response'
+      security:
+      - BearerAuth: []
+      summary: Update a movie
       tags:
       - Admin
   /auth/forgot-password:
