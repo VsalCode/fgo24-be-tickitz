@@ -9,7 +9,7 @@ import (
 )
 
 func GetAllMovies(ctx *gin.Context) {
-	movies, err := models.FindAllMovies()
+	movies, err := models.FindAllMovies("all")
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, utils.Response{
 			Success: false,
@@ -27,6 +27,38 @@ func GetAllMovies(ctx *gin.Context) {
 }
 
 
-func GetNowShowingMovies(ctx *gin.Context){}
+func GetNowShowingMovies(ctx *gin.Context){
+	movies, err := models.FindAllMovies("showing")
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, utils.Response{
+			Success: false,
+			Message: "Failed to retrieve movies",
+			Errors:  err.Error(),
+		})
+		return
+	}
 
-func GetUpComingMovies(ctx *gin.Context){}
+	ctx.JSON(http.StatusOK, utils.Response{
+		Success: true,
+		Message: "Movies retrieved successfully",
+		Results: movies,
+	})
+}
+
+func GetUpComingMovies(ctx *gin.Context){
+	movies, err := models.FindAllMovies("upcoming")
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, utils.Response{
+			Success: false,
+			Message: "Failed to retrieve movies",
+			Errors:  err.Error(),
+		})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, utils.Response{
+		Success: true,
+		Message: "Movies retrieved successfully",
+		Results: movies,
+	})
+}
