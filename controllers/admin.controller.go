@@ -4,8 +4,10 @@ import (
 	"be-cinevo/dto"
 	"be-cinevo/models"
 	"be-cinevo/utils"
-	"github.com/gin-gonic/gin"
 	"net/http"
+	"strconv"
+
+	"github.com/gin-gonic/gin"
 )
 
 // AddMovie godoc
@@ -52,4 +54,42 @@ func AddMovie(ctx *gin.Context) {
 		Success: true,
 		Message: "Movie added successfully",
 	})
+}
+
+func DeleteMovie(ctx *gin.Context) {
+	role, _ := ctx.Get("role")
+	if role != "admin" {
+		ctx.JSON(http.StatusForbidden, utils.Response{
+			Success: false,
+			Message: "Forbidden: Only admin can add movies",
+		})
+		return
+	}
+
+	id := ctx.Param("id")
+	IdInt, _ := strconv.Atoi(id)
+
+	if id == "" {
+		ctx.JSON(http.StatusBadRequest, utils.Response{
+			Success: false,
+			Message: "User ID is required",
+		})
+		return
+	}
+
+	err := models.DeleteMovieById(IdInt)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, utils.Response{
+			Success: false,
+			Message: "Failed to Delete Movie",
+			Results: err.Error(),
+		})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, utils.Response{
+		Success: true,
+		Message: "Delete Movie Successfully!",
+	})
+	return
 }

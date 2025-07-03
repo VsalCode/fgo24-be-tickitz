@@ -58,3 +58,21 @@ func CreateNewMovie(req dto.MovieRequest) (error) {
 
 	return nil
 }
+
+func DeleteMovieById(id int) error {
+	conn, err := utils.DBConnect()
+	if err != nil {
+		return err
+	}
+
+	defer conn.Close()
+
+	query := `DELETE FROM movies WHERE id = $1`
+
+	_, err = conn.Exec(context.Background(), query, id)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
