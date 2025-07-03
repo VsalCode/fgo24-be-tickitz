@@ -1,6 +1,7 @@
 package models
 
 import (
+	"be-cinevo/dto"
 	"be-cinevo/utils"
 	"context"
 
@@ -44,4 +45,66 @@ func FindUserById(id int) (User, error) {
 	}
 
 	return user, nil
+}
+
+func GetUpdatedUserInfo(id int, req dto.UpdatedUser) error {
+	conn, err := utils.DBConnect()
+	if err != nil {
+		return err
+	}
+	defer conn.Close()
+
+	var email, password string
+	var profileID int
+	err = conn.QueryRow(context.Background(),
+		`SELECT email, password, profile_id FROM users WHERE id = $1`, id).
+		Scan(&email, &password, &profileID)
+	if err != nil {
+		return err
+	}
+
+	var fullname, phone string
+	if profileID != 0 {
+		err = conn.QueryRow(context.Background(),
+			`SELECT fullname, phone FROM profiles WHERE id = $1`, profileID).
+			Scan(&fullname, &phone)
+		if err != nil {
+			return err
+		}
+	}
+
+	newEmail := email
+	if req.Email != "" {
+		newEmail = req.Email
+	}
+	newPassword := password
+	if req.Password != "" {
+		newPassword = req.Password
+	}
+	newFullname := fullname
+	if req.Fullname != "" {
+		newFullname = req.Fullname
+	}
+	newPhone := phone
+	if req.Phone != "" {
+		newPhone = req.Phone
+	}
+
+	_, err = conn.Exec(context.Background(),
+		`UPDATE users SET email = $1, password = $2 WHERE id = $3`,
+		newEmail, newPassword, id)
+	if err != nil {
+		return err
+	}
+
+	if profileID != 0 {
+		_, err = conn.Exec(context.Background(),
+			`UPDATE profiles SET fullname = $1, phone = $2 WHERE id = $3`,
+			newFullname, newPhone, profileID)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }

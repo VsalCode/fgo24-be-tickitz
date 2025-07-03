@@ -103,7 +103,6 @@ func DeleteMovie(ctx *gin.Context) {
 	})
 }
 
-
 // UpdateMovies godoc
 // @Summary Update a movie
 // @Description Update movie by movie id (admin only)
