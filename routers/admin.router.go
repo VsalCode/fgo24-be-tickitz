@@ -9,5 +9,6 @@ import (
 func adminRouters(r *gin.RouterGroup){
 	r.Use(middlewares.VerifyToken())
 	r.POST("", controllers.AddMovie )
-	r.DELETE(":id", controllers.DeleteMovie )
+	r.PATCH("/:id", controllers.UpdateMovies)
+	r.DELETE("/:id", controllers.DeleteMovie )
 }
