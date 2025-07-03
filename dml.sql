@@ -83,3 +83,7 @@ INSERT INTO casts (name) VALUES
 ('Owen Wilson'),
 ('Rachel McAdams'),
 ('Marion Cotillard');
+
+SELECT u.id, p.fullname, u.email, u.password, p.phone FROM users u 
+JOIN profiles p ON u.profile_id = p.id 
+WHERE u.id = 2 AND roles = 'user';

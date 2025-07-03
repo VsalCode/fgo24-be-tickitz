@@ -10,15 +10,6 @@ import (
 	"github.com/jackc/pgx/v5"
 )
 
-type User struct {
-	ID       int    `json:"id"`
-	Fullname string `json:"fullname"`
-	Email    string `json:"email"`
-	Password string `json:"password"`
-	Phone    string `json:"phone"`
-	Roles    string `json:"roles"`
-}
-
 func GetNewUser(req dto.RegisterRequest) (User, error) {
 	conn, err := utils.DBConnect()
 	if err != nil {
