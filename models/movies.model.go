@@ -26,10 +26,10 @@ type Movie struct {
 	Casts        []string  `json:"casts"`
 }
 
-func FindMovieByName(param string, key string) ([]Movie, error) {
+func FindMovieByName(key string, limit int, offset int) ([]Movie, int, error) {
     conn, err := utils.DBConnect()
     if err != nil {
-        return nil, err
+        return nil, 0, err
     }
 
     query := `
@@ -47,22 +47,29 @@ func FindMovieByName(param string, key string) ([]Movie, error) {
         WHERE m.title ILIKE $1
         GROUP BY m.id
         ORDER BY m.created_at DESC
+        LIMIT $2 OFFSET $3
     `
 
-    rows, err := conn.Query(context.Background(), query, "%"+key+"%")
+    rows, err := conn.Query(context.Background(), query, "%"+key+"%", limit, offset)
     if err != nil {
-        return nil, err
+        return nil, 0, err
     }
     defer rows.Close()
 
     movies, err := pgx.CollectRows[Movie](rows, pgx.RowToStructByName)
     if err != nil {
-        return nil, err
+        return nil, 0, err
     }
 
-    return movies, nil
-}
+    countQuery := `SELECT COUNT(*) FROM movies WHERE title ILIKE $1`
+    var total int
+    err = conn.QueryRow(context.Background(), countQuery, "%"+key+"%").Scan(&total)
+    if err != nil {
+        return nil, 0, err
+    }
 
+    return movies, total, nil
+}
 
 func FindAllMovies(param string) ([]Movie, error) {
 	conn, err := utils.DBConnect()

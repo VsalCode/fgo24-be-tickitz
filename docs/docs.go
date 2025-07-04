@@ -297,7 +297,7 @@ const docTemplate = `{
         },
         "/movies": {
             "get": {
-                "description": "Retrieve all movies",
+                "description": "Retrieve all movies with optional search and pagination",
                 "produces": [
                     "application/json"
                 ],
@@ -310,6 +310,18 @@ const docTemplate = `{
                         "type": "string",
                         "description": "Search by movie title",
                         "name": "search",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Page number",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Limit per page",
+                        "name": "limit",
                         "in": "query"
                     }
                 ],
@@ -333,12 +345,6 @@ const docTemplate = `{
                                     }
                                 }
                             ]
-                        }
-                    },
-                    "500": {
-                        "description": "Internal Server Error",
-                        "schema": {
-                            "$ref": "#/definitions/utils.Response"
                         }
                     }
                 }

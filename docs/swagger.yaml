@@ -360,12 +360,20 @@ paths:
       - Auth
   /movies:
     get:
-      description: Retrieve all movies
+      description: Retrieve all movies with optional search and pagination
       parameters:
       - description: Search by movie title
         in: query
         name: search
         type: string
+      - description: Page number
+        in: query
+        name: page
+        type: integer
+      - description: Limit per page
+        in: query
+        name: limit
+        type: integer
       produces:
       - application/json
       responses:
@@ -380,10 +388,6 @@ paths:
                     $ref: '#/definitions/models.Movie'
                   type: array
               type: object
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/utils.Response'
       summary: Get all movies
       tags:
       - Movies
