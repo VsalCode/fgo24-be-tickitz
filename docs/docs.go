@@ -305,6 +305,14 @@ const docTemplate = `{
                     "Movies"
                 ],
                 "summary": "Get all movies",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Search by movie title",
+                        "name": "search",
+                        "in": "query"
+                    }
+                ],
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -425,7 +433,7 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "account settings information",
+                "description": "Get the profile information of current logged-in user",
                 "produces": [
                     "application/json"
                 ],
@@ -445,14 +453,60 @@ const docTemplate = `{
                                     "type": "object",
                                     "properties": {
                                         "results": {
-                                            "type": "array",
-                                            "items": {
-                                                "$ref": "#/definitions/models.User"
-                                            }
+                                            "$ref": "#/definitions/models.User"
                                         }
                                     }
                                 }
                             ]
+                        }
+                    }
+                }
+            },
+            "patch": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Update the profile information of the logged-in user",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "User"
+                ],
+                "summary": "Update User Profile",
+                "parameters": [
+                    {
+                        "description": "User data to update",
+                        "name": "user",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/dto.UpdatedUser"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/utils.Response"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/utils.Response"
+                        }
+                    },
+                    "401": {
+                        "description": "Unauthorized",
+                        "schema": {
+                            "$ref": "#/definitions/utils.Response"
                         }
                     },
                     "500": {
@@ -578,6 +632,23 @@ const docTemplate = `{
                 "password": {
                     "type": "string",
                     "minLength": 6
+                }
+            }
+        },
+        "dto.UpdatedUser": {
+            "type": "object",
+            "properties": {
+                "email": {
+                    "type": "string"
+                },
+                "fullname": {
+                    "type": "string"
+                },
+                "password": {
+                    "type": "string"
+                },
+                "phone": {
+                    "type": "string"
                 }
             }
         },

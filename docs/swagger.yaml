@@ -81,6 +81,17 @@ definitions:
     - email
     - password
     type: object
+  dto.UpdatedUser:
+    properties:
+      email:
+        type: string
+      fullname:
+        type: string
+      password:
+        type: string
+      phone:
+        type: string
+    type: object
   dto.VerifyEmail:
     properties:
       email:
@@ -350,6 +361,11 @@ paths:
   /movies:
     get:
       description: Retrieve all movies
+      parameters:
+      - description: Search by movie title
+        in: query
+        name: search
+        type: string
       produces:
       - application/json
       responses:
@@ -421,7 +437,7 @@ paths:
       - Movies
   /user:
     get:
-      description: account settings information
+      description: Get the profile information of current logged-in user
       produces:
       - application/json
       responses:
@@ -432,17 +448,46 @@ paths:
             - $ref: '#/definitions/utils.Response'
             - properties:
                 results:
-                  items:
-                    $ref: '#/definitions/models.User'
-                  type: array
+                  $ref: '#/definitions/models.User'
               type: object
+      security:
+      - BearerAuth: []
+      summary: Get User Profile
+      tags:
+      - User
+    patch:
+      consumes:
+      - application/json
+      description: Update the profile information of the logged-in user
+      parameters:
+      - description: User data to update
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/dto.UpdatedUser'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.Response'
+        "401":
+          description: Unauthorized
+          schema:
+            $ref: '#/definitions/utils.Response'
         "500":
           description: Internal Server Error
           schema:
             $ref: '#/definitions/utils.Response'
       security:
       - BearerAuth: []
-      summary: Get User Profile
+      summary: Update User Profile
       tags:
       - User
 securityDefinitions:

@@ -13,6 +13,7 @@ import (
 // @Description Retrieve all movies
 // @Tags Movies
 // @Produce json
+// @Param search query string false "Search by movie title"
 // @Success 200 {object} utils.Response{results=[]models.Movie}
 // @Failure 500 {object} utils.Response
 // @Router /movies [get]
