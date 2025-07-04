@@ -17,7 +17,9 @@ import (
 // @Failure 500 {object} utils.Response
 // @Router /movies [get]
 func GetAllMovies(ctx *gin.Context) {
-	movies, err := models.FindAllMovies("all")
+	key := ctx.Query("search")
+
+	movies, err := models.FindMovieByName("all", key)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, utils.Response{
 			Success: false,

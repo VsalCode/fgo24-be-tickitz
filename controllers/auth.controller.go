@@ -79,6 +79,7 @@ func LoginUser(ctx *gin.Context) {
 			Message: "Invalid email or password",
 			Errors:  err.Error(),
 		})
+		return
 	}
 
 	token, err := utils.GenerateToken(userId, role)
