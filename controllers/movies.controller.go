@@ -9,6 +9,16 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// GetAllMovies godoc
+// @Summary Get all movies
+// @Description Retrieve all movies with optional search and pagination
+// @Tags Movies
+// @Produce json
+// @Param search query string false "Search by movie title"
+// @Param page query int false "Page number"
+// @Param limit query int false "Limit per page"
+// @Success 200 {object} utils.Response{results=[]models.Movie}
+// @Router /movies [get]
 func GetAllMovies(ctx *gin.Context) {
 	key := ctx.Query("search")
 	page := ctx.DefaultQuery("page", "1")
