@@ -9,6 +9,14 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// GetUserInfo godoc
+// @Summary Get User Profile
+// @Description Get the profile information of current logged-in user
+// @Tags User
+// @Produce json
+// @Success 200 {object} utils.Response{results=models.User}
+// @Security BearerAuth
+// @Router /user [get]
 func GetUserInfo(ctx *gin.Context) {
 	userId, exists := ctx.Get("userId")
 
@@ -36,6 +44,19 @@ func GetUserInfo(ctx *gin.Context) {
 	})
 }
 
+// UpdateUserInfo godoc
+// @Summary Update User Profile
+// @Description Update the profile information of the logged-in user
+// @Tags User
+// @Accept json
+// @Produce json
+// @Param user body dto.UpdatedUser true "User data to update"
+// @Success 200 {object} utils.Response
+// @Failure 400 {object} utils.Response
+// @Failure 401 {object} utils.Response
+// @Failure 500 {object} utils.Response
+// @Security BearerAuth
+// @Router /user [patch]
 func UpdateUserInfo(ctx *gin.Context) {
 	userId, exists := ctx.Get("userId")
 
