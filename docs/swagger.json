@@ -424,6 +424,45 @@
                 }
             }
         },
+        "/transactions": {
+            "post": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Add a new transactions booking tickets",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Transactions"
+                ],
+                "summary": "Booking Tickets",
+                "parameters": [
+                    {
+                        "description": "Ticket Trancastions",
+                        "name": "movie",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/models.Transactions"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/utils.Response"
+                        }
+                    }
+                }
+            }
+        },
         "/user": {
             "get": {
                 "security": [
@@ -717,6 +756,47 @@
                 },
                 "vote_average": {
                     "type": "integer"
+                }
+            }
+        },
+        "models.Transactions": {
+            "type": "object",
+            "properties": {
+                "amount": {
+                    "type": "number"
+                },
+                "cinema": {
+                    "type": "string"
+                },
+                "customer_email": {
+                    "type": "string"
+                },
+                "customer_fullname": {
+                    "type": "string"
+                },
+                "customer_phone": {
+                    "type": "string"
+                },
+                "location": {
+                    "type": "string"
+                },
+                "movie_id": {
+                    "type": "integer"
+                },
+                "payment_method_id": {
+                    "type": "integer"
+                },
+                "seat": {
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                "show_date": {
+                    "type": "string"
+                },
+                "show_time": {
+                    "type": "string"
                 }
             }
         },

@@ -1,3 +1,4 @@
+-- Active: 1751393237310@@127.0.0.1@5432@cinevodb
 INSERT INTO genres (name) VALUES
 ('Action'),
 ('Adventure'),
@@ -87,3 +88,13 @@ INSERT INTO casts (name) VALUES
 SELECT u.id, p.fullname, u.email, u.password, p.phone FROM users u 
 JOIN profiles p ON u.profile_id = p.id 
 WHERE u.id = 2 AND roles = 'user';
+
+INSERT INTO payment_method (name)
+VALUES ('dana'),
+('google pay'),
+('bca'),
+('ovo'),
+('paypal'),
+('gopay'),
+('visa'),
+('bri');

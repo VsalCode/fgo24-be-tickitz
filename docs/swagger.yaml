@@ -138,6 +138,33 @@ definitions:
       vote_average:
         type: integer
     type: object
+  models.Transactions:
+    properties:
+      amount:
+        type: number
+      cinema:
+        type: string
+      customer_email:
+        type: string
+      customer_fullname:
+        type: string
+      customer_phone:
+        type: string
+      location:
+        type: string
+      movie_id:
+        type: integer
+      payment_method_id:
+        type: integer
+      seat:
+        items:
+          type: string
+        type: array
+      show_date:
+        type: string
+      show_time:
+        type: string
+    type: object
   models.UpdatedMovie:
     properties:
       backdrop_path:
@@ -439,6 +466,30 @@ paths:
       summary: Get upcoming movies
       tags:
       - Movies
+  /transactions:
+    post:
+      consumes:
+      - application/json
+      description: Add a new transactions booking tickets
+      parameters:
+      - description: Ticket Trancastions
+        in: body
+        name: movie
+        required: true
+        schema:
+          $ref: '#/definitions/models.Transactions'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/utils.Response'
+      security:
+      - BearerAuth: []
+      summary: Booking Tickets
+      tags:
+      - Transactions
   /user:
     get:
       description: Get the profile information of current logged-in user
