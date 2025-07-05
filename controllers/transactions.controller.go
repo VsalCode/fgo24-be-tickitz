@@ -7,6 +7,15 @@ import (
 	"github.com/gin-gonic/gin"
 );
 
+// BookingTickets godoc
+// @Summary Booking Tickets
+// @Description add booking movie ticket transactions
+// @Tags Transactions
+// @Produce json
+// @Param ticket body models.Transactions true "Data Transactions"
+// @Success 201 {object} utils.Response
+// @Security BearerAuth
+// @Router /transactions [post]
 func BookingTicket(ctx *gin.Context){
 	userId, exists := ctx.Get("userId")
 
@@ -46,6 +55,14 @@ func BookingTicket(ctx *gin.Context){
 	})
 }
 
+// TransactionsHistory godoc
+// @Summary Transactions History
+// @Description Get User Transactions History
+// @Tags Transactions
+// @Produce json
+// @Success 200 {object} utils.Response
+// @Security BearerAuth
+// @Router /transactions [get]
 func HistoryTransactions(ctx *gin.Context){
 		userId, exists := ctx.Get("userId")
 

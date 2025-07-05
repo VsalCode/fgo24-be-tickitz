@@ -467,14 +467,26 @@ paths:
       tags:
       - Movies
   /transactions:
-    post:
-      consumes:
+    get:
+      description: Get User Transactions History
+      produces:
       - application/json
-      description: Add a new transactions booking tickets
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.Response'
+      security:
+      - BearerAuth: []
+      summary: Transactions History
+      tags:
+      - Transactions
+    post:
+      description: add booking movie ticket transactions
       parameters:
-      - description: Ticket Trancastions
+      - description: Data Transactions
         in: body
-        name: movie
+        name: ticket
         required: true
         schema:
           $ref: '#/definitions/models.Transactions'

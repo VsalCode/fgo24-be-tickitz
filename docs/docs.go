@@ -433,16 +433,36 @@ const docTemplate = `{
             }
         },
         "/transactions": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Get User Transactions History",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Transactions"
+                ],
+                "summary": "Transactions History",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/utils.Response"
+                        }
+                    }
+                }
+            },
             "post": {
                 "security": [
                     {
                         "BearerAuth": []
                     }
                 ],
-                "description": "Add a new transactions booking tickets",
-                "consumes": [
-                    "application/json"
-                ],
+                "description": "add booking movie ticket transactions",
                 "produces": [
                     "application/json"
                 ],
@@ -452,8 +472,8 @@ const docTemplate = `{
                 "summary": "Booking Tickets",
                 "parameters": [
                     {
-                        "description": "Ticket Trancastions",
-                        "name": "movie",
+                        "description": "Data Transactions",
+                        "name": "ticket",
                         "in": "body",
                         "required": true,
                         "schema": {
