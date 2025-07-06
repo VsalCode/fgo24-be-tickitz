@@ -4,10 +4,12 @@ import (
 	"be-cinevo/dto"
 	"be-cinevo/models"
 	"be-cinevo/utils"
-	"net/http"
-
+	"context"
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
+	"net/http"
+	"strings"
+	"time"
 )
 
 // @Summary Register a new user
@@ -172,5 +174,31 @@ func ResetPassword(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, utils.Response{
 		Success: true,
 		Message: "Password reset successful",
+	})
+}
+
+func LogoutUser(ctx *gin.Context) {
+	token := strings.Split(ctx.GetHeader("Authorization"), "Bearer ")
+	if len(token) < 2 {
+		ctx.JSON(http.StatusBadRequest, utils.Response{
+			Success: false,
+			Message: "Invalid token format!",
+		})
+		return
+	}
+
+	tokenString := strings.TrimSpace(token[1])
+	err := utils.RedisClient.Set(context.Background(), "blacklist:"+tokenString, "true", 24*time.Hour).Err()
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, utils.Response{
+			Success: false,
+			Message: "Failed to logout!",
+		})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, utils.Response{
+		Success: true,
+		Message: "Logout successfully!",
 	})
 }
