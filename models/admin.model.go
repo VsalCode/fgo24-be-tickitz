@@ -227,3 +227,54 @@ func GetTicketSales(filter string) ([]map[string]interface{}, error) {
 
 	return results, nil
 }
+
+func GetSalesChart(filter string) ([]map[string]interface{}, error) {
+	conn, err := utils.DBConnect()
+	if err != nil {
+		return nil, err
+	}
+	defer conn.Close()
+
+	var query string
+	if filter == "location" {
+		query = `
+			SELECT t.location AS genre, COUNT(t.id) AS total_sales
+			FROM transactions t
+			GROUP BY t.location
+		`
+	} else if filter == "cinema" {
+		query = `
+			SELECT t.cinema AS genre, COUNT(t.id) AS total_sales
+			FROM transactions t
+			GROUP BY t.cinema
+		`
+	}
+
+	rows, err := conn.Query(context.Background(), query)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var results []map[string]interface{}
+
+	for rows.Next() {
+		var movieName string
+		var totalSales int
+		if err := rows.Scan(&movieName, &totalSales); err != nil {
+			return nil, err
+		}
+
+		result := map[string]interface{}{
+			"movie_name":  movieName,
+			"total_sales": totalSales,
+		}
+		results = append(results, result)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return results, nil
+}
