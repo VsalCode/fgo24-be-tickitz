@@ -154,3 +154,41 @@ func UpdateMovies(ctx *gin.Context) {
 	})
 
 }
+
+func TicketSales(ctx *gin.Context) {
+	role, exist := ctx.Get("role")
+	if !exist {
+		ctx.JSON(http.StatusUnauthorized, utils.Response{
+			Success: false,
+			Message: "Unauthorized!",
+		})
+		return
+	}
+
+	if role != "admin" {
+		ctx.JSON(http.StatusForbidden, utils.Response{
+			Success: false,
+			Message: "Forbidden: Only admin can access this resource",
+		})
+		return
+	}
+
+	key := ctx.Query("filter")
+
+	data, err := models.GetTicketSales(key)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, utils.Response{
+			Success: false,
+			Message: "Internal Server Error",	
+			Errors: "lorem ipsum",
+		})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, utils.Response{
+		Success: true,
+		Message: "Ticket sales fetched successfully",
+		Results:    data,
+	})
+}
+

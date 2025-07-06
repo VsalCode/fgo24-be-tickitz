@@ -98,3 +98,10 @@ VALUES ('dana'),
 ('gopay'),
 ('visa'),
 ('bri');
+
+SELECT g.name AS genre, COUNT(t.movie_id) AS total_sales
+			FROM transactions t
+			JOIN movies m ON t.movie_id = m.id
+			JOIN movie_genres mg ON mg.movie_id = m.id
+			JOIN genres g ON g.id = mg.genre_id
+			GROUP BY g.name

@@ -17,6 +17,7 @@ type UpdatedMovie struct {
 	Runtime      *int       `json:"runtime"`
 }
 
+
 func CreateNewMovie(req dto.MovieRequest) error {
 	conn, err := utils.DBConnect()
 	if err != nil {
@@ -170,4 +171,59 @@ func GetUpdatedMovie(id int, req UpdatedMovie) error {
 	}
 
 	return nil
+}
+
+func GetTicketSales(filter string) ([]map[string]interface{}, error) {
+	conn, err := utils.DBConnect()
+	if err != nil {
+		return nil, err
+	}
+	defer conn.Close()
+
+	var query string
+	if filter == "genre" {
+		query = `
+			SELECT g.name AS genre, COUNT(t.movie_id) AS total_sales
+			FROM transactions t
+			JOIN movies m ON t.movie_id = m.id
+			JOIN movie_genres mg ON mg.movie_id = m.id
+			JOIN genres g ON g.id = mg.genre_id
+			GROUP BY g.name
+		`
+	} else if filter == "movie" {
+		query = `
+			SELECT m.title AS movie_name, COUNT(t.movie_id) AS total_sales
+			FROM transactions t
+			JOIN movies m ON t.movie_id = m.id
+			GROUP BY m.title
+		`
+	}
+
+	rows, err := conn.Query(context.Background(), query)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var results []map[string]interface{}
+
+	for rows.Next() {
+		var movieName string
+		var totalSales int
+		if err := rows.Scan(&movieName, &totalSales); err != nil {
+			return nil, err
+		}
+
+		result := map[string]interface{}{
+			"movie_name":  movieName,
+			"total_sales": totalSales,
+		}
+		results = append(results, result)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return results, nil
 }

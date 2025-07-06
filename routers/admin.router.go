@@ -11,4 +11,5 @@ func adminRouters(r *gin.RouterGroup){
 	r.POST("", controllers.AddMovie )
 	r.PATCH("/:id", controllers.UpdateMovies)
 	r.DELETE("/:id", controllers.DeleteMovie )
+	r.GET("/ticket-sales", controllers.TicketSales )
 }
