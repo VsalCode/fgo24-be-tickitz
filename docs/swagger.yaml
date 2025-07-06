@@ -468,7 +468,7 @@ paths:
       - Movies
   /transactions:
     get:
-      description: Get User Transactions History
+      description: Get Ticket Result
       produces:
       - application/json
       responses:
@@ -478,7 +478,7 @@ paths:
             $ref: '#/definitions/utils.Response'
       security:
       - BearerAuth: []
-      summary: Transactions History
+      summary: Ticket Result
       tags:
       - Transactions
     post:
@@ -500,6 +500,21 @@ paths:
       security:
       - BearerAuth: []
       summary: Booking Tickets
+      tags:
+      - Transactions
+  /transactions/history:
+    get:
+      description: Get User Transactions History
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.Response'
+      security:
+      - BearerAuth: []
+      summary: Transactions History
       tags:
       - Transactions
   /user:

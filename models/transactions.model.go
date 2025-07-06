@@ -1,6 +1,7 @@
 package models
 
 import (
+	"be-cinevo/dto"
 	"be-cinevo/utils"
 	"context"
 
@@ -82,6 +83,45 @@ func HandleBookingTicket(id int, req Transactions) error {
 	}
 
 	return nil
+}
+
+func GetTicketResult(id int) (dto.Ticket, error) {
+		conn, err := utils.DBConnect()
+	if err != nil {
+		return dto.Ticket{}, err
+	}
+
+	query := `
+  SELECT 
+    m.title AS title,
+    COALESCE(array_agg(DISTINCT g.name)) AS genre,
+    t.show_date AS date,
+    t.show_time AS time,
+    COALESCE(array_agg(DISTINCT td.seat)) AS seat,
+    t.cinema
+  FROM transactions t
+  LEFT JOIN payment_method pm ON pm.id = t.payment_method_id
+  LEFT JOIN transaction_details td ON td.transaction_id = t.id 
+  LEFT JOIN movies m ON m.id = t.movie_id
+  LEFT JOIN movie_genres mg ON m.id = mg.movie_id
+  LEFT JOIN genres g ON mg.genre_id = g.id
+  WHERE t.user_id = $1
+  GROUP BY t.id, m.title, t.show_date, t.show_time, t.cinema
+  ORDER BY t.created_at DESC
+	LIMIT 1
+    `
+
+	rows, err := conn.Query(context.Background(), query, id)
+	if err != nil {
+		return dto.Ticket{}, err
+	}
+
+	ticket, err := pgx.CollectOneRow[dto.Ticket](rows, pgx.RowToStructByName)
+	if err != nil {
+		return dto.Ticket{}, err
+	}
+
+	return ticket, nil	
 }
 
 func FindHistoryByUserId(id int) ([]HistoryTransactions, error) {

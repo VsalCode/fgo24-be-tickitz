@@ -439,14 +439,14 @@ const docTemplate = `{
                         "BearerAuth": []
                     }
                 ],
-                "description": "Get User Transactions History",
+                "description": "Get Ticket Result",
                 "produces": [
                     "application/json"
                 ],
                 "tags": [
                     "Transactions"
                 ],
-                "summary": "Transactions History",
+                "summary": "Ticket Result",
                 "responses": {
                     "200": {
                         "description": "OK",
@@ -484,6 +484,31 @@ const docTemplate = `{
                 "responses": {
                     "201": {
                         "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/utils.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/transactions/history": {
+            "get": {
+                "security": [
+                    {
+                        "BearerAuth": []
+                    }
+                ],
+                "description": "Get User Transactions History",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Transactions"
+                ],
+                "summary": "Transactions History",
+                "responses": {
+                    "200": {
+                        "description": "OK",
                         "schema": {
                             "$ref": "#/definitions/utils.Response"
                         }

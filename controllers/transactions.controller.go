@@ -1,4 +1,4 @@
-package controllers
+package controllers;
 
 import (
 	"be-cinevo/models"
@@ -55,6 +55,34 @@ func BookingTicket(ctx *gin.Context){
 	})
 }
 
+func TicketResult(ctx *gin.Context){
+	userId, exists := ctx.Get("userId")
+
+	if !exists {
+		ctx.JSON(http.StatusUnauthorized, utils.Response{
+			Success: false,
+			Message: "Unauthorized!",
+		})
+		return
+	}
+
+	ticket, err := models.GetTicketResult(userId.(int))
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, utils.Response{
+			Success: false,
+			Message: "Failed to show ticket result!",
+			Errors: err.Error(),
+		})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, utils.Response{
+		Success: true,
+		Message: "Get Ticket Result Successfully!",
+		Results: ticket,
+	})
+}
+
 // TransactionsHistory godoc
 // @Summary Transactions History
 // @Description Get User Transactions History
@@ -62,7 +90,7 @@ func BookingTicket(ctx *gin.Context){
 // @Produce json
 // @Success 200 {object} utils.Response
 // @Security BearerAuth
-// @Router /transactions [get]
+// @Router /transactions/history [get]
 func HistoryTransactions(ctx *gin.Context){
 		userId, exists := ctx.Get("userId")
 
