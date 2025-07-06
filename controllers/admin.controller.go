@@ -155,6 +155,16 @@ func UpdateMovies(ctx *gin.Context) {
 
 }
 
+// TicketSales godoc
+// @Summary Get Ticket Sales
+// @Description Get total ticket sales filtered by genre and movie name (admin only)
+// @Tags Admin
+// @Accept json
+// @Produce json
+// @Param filter query string false "filter by 'movie' or 'genre'"
+// @Success 200 {object} utils.Response
+// @Security BearerAuth
+// @Router /admin/ticket-sales [get]
 func TicketSales(ctx *gin.Context) {
 	role, exist := ctx.Get("role")
 	if !exist {
@@ -192,6 +202,16 @@ func TicketSales(ctx *gin.Context) {
 	})
 }
 
+// SalesChart godoc
+// @Summary Get Sales Chart
+// @Description Get Sales Chart filtered by cinema and location (admin only)
+// @Tags Admin
+// @Accept json
+// @Produce json
+// @Param filter query string false "filter by 'cinema' or 'location'"
+// @Success 200 {object} utils.Response
+// @Security BearerAuth
+// @Router /admin/sales-chart [get]
 func SalesChart(ctx *gin.Context) {
 	role, exist := ctx.Get("role")
 	if !exist {

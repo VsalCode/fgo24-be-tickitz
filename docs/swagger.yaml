@@ -287,6 +287,51 @@ paths:
       summary: Update a movie
       tags:
       - Admin
+  /admin/sales-chart:
+    get:
+      consumes:
+      - application/json
+      description: Get Sales Chart filtered by cinema and location (admin only)
+      parameters:
+      - description: filter by 'cinema' or 'location'
+        in: query
+        name: filter
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.Response'
+      security:
+      - BearerAuth: []
+      summary: Get Sales Chart
+      tags:
+      - Admin
+  /admin/ticket-sales:
+    get:
+      consumes:
+      - application/json
+      description: Get total ticket sales filtered by genre and movie name (admin
+        only)
+      parameters:
+      - description: filter by 'movie' or 'genre'
+        in: query
+        name: filter
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.Response'
+      security:
+      - BearerAuth: []
+      summary: Get Ticket Sales
+      tags:
+      - Admin
   /auth/forgot-password:
     post:
       consumes:
