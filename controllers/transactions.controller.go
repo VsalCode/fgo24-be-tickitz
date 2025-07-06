@@ -55,6 +55,14 @@ func BookingTicket(ctx *gin.Context){
 	})
 }
 
+// TicketResult godoc
+// @Summary Ticket Result
+// @Description Get Ticket Result
+// @Tags Transactions
+// @Produce json
+// @Success 200 {object} utils.Response
+// @Security BearerAuth
+// @Router /transactions [get]
 func TicketResult(ctx *gin.Context){
 	userId, exists := ctx.Get("userId")
 
