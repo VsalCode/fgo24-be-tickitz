@@ -395,6 +395,12 @@ const docTemplate = `{
                         "description": "Limit per page",
                         "name": "limit",
                         "in": "query"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Filter By Genre",
+                        "name": "genre",
+                        "in": "query"
                     }
                 ],
                 "responses": {

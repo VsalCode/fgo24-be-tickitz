@@ -26,49 +26,50 @@ type Movie struct {
 	Casts        []string  `json:"casts"`
 }
 
-func FindMovieByName(key string, limit int, offset int) ([]Movie, int, error) {
-    conn, err := utils.DBConnect()
-    if err != nil {
-        return nil, 0, err
-    }
+func HandleShowAllMovies(key string, limit int, offset int, filter string) ([]Movie, int, error) {
+	conn, err := utils.DBConnect()
+	if err != nil {
+		return nil, 0, err
+	}
 
-    query := `
-        SELECT m.id, m.title, m.overview, m.vote_average, m.poster_path, m.backdrop_path, m.release_date, m.runtime, m.popularity, m.admin_id, m.created_at, m.updated_at, 
-            COALESCE(array_agg(DISTINCT g.name) FILTER (WHERE g.name IS NOT NULL), '{}') AS genres,
-            COALESCE(array_agg(DISTINCT d.name) FILTER (WHERE d.name IS NOT NULL), '{}') AS directors,
-            COALESCE(array_agg(DISTINCT c.name) FILTER (WHERE c.name IS NOT NULL), '{}') AS casts
-        FROM movies m
-        LEFT JOIN movie_genres mg ON m.id = mg.movie_id
-        LEFT JOIN genres g ON mg.genre_id = g.id
-        LEFT JOIN movie_directors md ON m.id = md.movie_id
-        LEFT JOIN directors d ON md.director_id = d.id
-        LEFT JOIN movie_casts mc ON m.id = mc.movie_id
-        LEFT JOIN casts c ON mc.cast_id = c.id
-        WHERE m.title ILIKE $1
-        GROUP BY m.id
-        ORDER BY m.created_at DESC
-        LIMIT $2 OFFSET $3
+	query := `
+    SELECT m.id, m.title, m.overview, m.vote_average, m.poster_path, m.backdrop_path, m.release_date, m.runtime, m.popularity, m.admin_id, m.created_at, m.updated_at, 
+        COALESCE(array_agg(DISTINCT g.name)) AS genres,
+        COALESCE(array_agg(DISTINCT d.name)) AS directors,
+        COALESCE(array_agg(DISTINCT c.name)) AS casts
+    FROM movies m
+    LEFT JOIN movie_genres mg ON m.id = mg.movie_id
+    LEFT JOIN genres g ON mg.genre_id = g.id
+    LEFT JOIN movie_directors md ON m.id = md.movie_id
+    LEFT JOIN directors d ON md.director_id = d.id
+    LEFT JOIN movie_casts mc ON m.id = mc.movie_id
+    LEFT JOIN casts c ON mc.cast_id = c.id
+    WHERE m.title ILIKE $1
+    AND ($2 = '' OR g.name ILIKE $2)
+    GROUP BY m.id
+    ORDER BY m.created_at DESC
+    LIMIT $3 OFFSET $4
     `
 
-    rows, err := conn.Query(context.Background(), query, "%"+key+"%", limit, offset)
-    if err != nil {
-        return nil, 0, err
-    }
-    defer rows.Close()
+	rows, err := conn.Query(context.Background(), query, "%"+key+"%", "%"+filter+"%", limit, offset)
+	if err != nil {
+		return nil, 0, err
+	}
+	defer rows.Close()
 
-    movies, err := pgx.CollectRows[Movie](rows, pgx.RowToStructByName)
-    if err != nil {
-        return nil, 0, err
-    }
+	movies, err := pgx.CollectRows[Movie](rows, pgx.RowToStructByName)
+	if err != nil {
+		return nil, 0, err
+	}
 
-    countQuery := `SELECT COUNT(*) FROM movies WHERE title ILIKE $1`
-    var total int
-    err = conn.QueryRow(context.Background(), countQuery, "%"+key+"%").Scan(&total)
-    if err != nil {
-        return nil, 0, err
-    }
+	countQuery := `SELECT COUNT(*) FROM movies WHERE title ILIKE $1`
+	var total int
+	err = conn.QueryRow(context.Background(), countQuery, "%"+key+"%").Scan(&total)
+	if err != nil {
+		return nil, 0, err
+	}
 
-    return movies, total, nil
+	return movies, total, nil
 }
 
 func FindAllMovies(param string) ([]Movie, error) {

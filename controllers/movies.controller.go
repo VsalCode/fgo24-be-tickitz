@@ -17,10 +17,12 @@ import (
 // @Param search query string false "Search by movie title"
 // @Param page query int false "Page number"
 // @Param limit query int false "Limit per page"
+// @Param genre query string false "Filter By Genre"
 // @Success 200 {object} utils.Response{results=[]models.Movie}
 // @Router /movies [get]
 func GetAllMovies(ctx *gin.Context) {
 	key := ctx.Query("search")
+	filter := ctx.Query("genres")
 	page := ctx.DefaultQuery("page", "1")
 	limit := ctx.DefaultQuery("limit", "5")
 
@@ -37,7 +39,7 @@ func GetAllMovies(ctx *gin.Context) {
 
 	offset := (pageInt - 1) * limitInt
 
-	movies, totalMovies, err := models.FindMovieByName(key, limitInt, offset)
+	movies, totalMovies, err := models.HandleShowAllMovies(key, limitInt, offset, filter)
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, utils.Response{
 			Success: false,

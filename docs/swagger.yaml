@@ -446,6 +446,10 @@ paths:
         in: query
         name: limit
         type: integer
+      - description: Filter By Genre
+        in: query
+        name: genre
+        type: string
       produces:
       - application/json
       responses:
