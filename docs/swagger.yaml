@@ -450,6 +450,14 @@ paths:
         in: query
         name: genre
         type: string
+      - description: Sort By (popularity, highest rating)
+        in: query
+        name: sortBy
+        type: string
+      - description: Sort Order By (Ascending, Descending)
+        in: query
+        name: sortOrder
+        type: string
       produces:
       - application/json
       responses:
