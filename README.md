@@ -175,6 +175,7 @@ Follow these steps to set up the Cinevo backend locally:
 To view and interact with the API documentation using Swagger:
 
 1. **Generate Swagger Documentation**:
+
    Generate the Swagger documentation:
    ```bash
    swag init

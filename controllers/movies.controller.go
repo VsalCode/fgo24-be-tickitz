@@ -76,7 +76,7 @@ func GetAllMovies(ctx *gin.Context) {
 // @Failure 500 {object} utils.Response
 // @Router /movies/now-showing [get]
 func GetNowShowingMovies(ctx *gin.Context) {
-	movies, err := models.FindAllMovies("showing")
+	movies, err := models.HandleNowShowingMovies()
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, utils.Response{
 			Success: false,
@@ -102,7 +102,7 @@ func GetNowShowingMovies(ctx *gin.Context) {
 // @Failure 500 {object} utils.Response
 // @Router /movies/upcoming [get]
 func GetUpComingMovies(ctx *gin.Context) {
-	movies, err := models.FindAllMovies("upcoming")
+	movies, err := models.HandleUpComingMovies()
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, utils.Response{
 			Success: false,

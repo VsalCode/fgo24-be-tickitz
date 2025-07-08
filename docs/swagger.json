@@ -393,18 +393,6 @@
                         "description": "Filter By Genre",
                         "name": "genre",
                         "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Sort By (popularity, highest rating)",
-                        "name": "sortBy",
-                        "in": "query"
-                    },
-                    {
-                        "type": "string",
-                        "description": "Sort Order By (Ascending, Descending)",
-                        "name": "sortOrder",
-                        "in": "query"
                     }
                 ],
                 "responses": {

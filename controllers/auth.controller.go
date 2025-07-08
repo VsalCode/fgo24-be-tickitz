@@ -188,7 +188,7 @@ func LogoutUser(ctx *gin.Context) {
 	}
 
 	tokenString := strings.TrimSpace(token[1])
-	err := utils.RedisClient.Set(context.Background(), "blacklist:"+tokenString, "true", 24*time.Hour).Err()
+	err := utils.RedisClient.Set(context.Background(), "blacklist:"+tokenString, "true", 1*time.Hour).Err()
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, utils.Response{
 			Success: false,

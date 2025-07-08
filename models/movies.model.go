@@ -72,19 +72,52 @@ func HandleShowAllMovies(key string, limit int, offset int, filter string) ([]Mo
 	return movies, total, nil
 }
 
-func FindAllMovies(param string) ([]Movie, error) {
+func HandleNowShowingMovies() ([]Movie, error) {
 	conn, err := utils.DBConnect()
 	if err != nil {
 		return nil, err
 	}
 
-	var query string
-	if param == "upcoming" {
-		query = `
+	query := `
+  SELECT m.id, m.title, m.overview, m.vote_average, m.poster_path, m.backdrop_path, m.release_date, m.runtime, m.popularity, m.admin_id, m.created_at, m.updated_at, 
+   	COALESCE(array_agg(DISTINCT g.name)) AS genres,
+   	COALESCE(array_agg(DISTINCT d.name)) AS directors,
+   	COALESCE(array_agg(DISTINCT c.name)) AS casts
+  FROM movies m
+  LEFT JOIN movie_genres mg ON m.id = mg.movie_id
+  LEFT JOIN genres g ON mg.genre_id = g.id
+  LEFT JOIN movie_directors md ON m.id = md.movie_id
+  LEFT JOIN directors d ON md.director_id = d.id
+  LEFT JOIN movie_casts mc ON m.id = mc.movie_id
+  LEFT JOIN casts c ON mc.cast_id = c.id
+  WHERE m.release_date BETWEEN (CURRENT_DATE - INTERVAL '1 month') AND (CURRENT_DATE + INTERVAL '1 month')
+	GROUP BY m.id
+  ORDER BY m.release_date DESC`
+
+	rows, err := conn.Query(context.Background(), query)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	movies, err := pgx.CollectRows[Movie](rows, pgx.RowToStructByName)
+	if err != nil {
+		return nil, err
+	}
+
+	return movies, nil
+}
+
+func HandleUpComingMovies() ([]Movie, error) {
+	conn, err := utils.DBConnect()
+	if err != nil {
+		return nil, err
+	}
+		query := `
 		SELECT m.id, m.title, m.overview, m.vote_average, m.poster_path, m.backdrop_path, m.release_date, m.runtime, m.popularity, m.admin_id, m.created_at, m.updated_at, 
-        COALESCE(array_agg(DISTINCT g.name) FILTER (WHERE g.name IS NOT NULL), '{}') AS genres,
- 				COALESCE(array_agg(DISTINCT d.name) FILTER (WHERE d.name IS NOT NULL), '{}') AS directors,
-        COALESCE(array_agg(DISTINCT c.name) FILTER (WHERE c.name IS NOT NULL), '{}') AS casts
+        COALESCE(array_agg(DISTINCT g.name)) AS genres,
+ 				COALESCE(array_agg(DISTINCT d.name)) AS directors,
+        COALESCE(array_agg(DISTINCT c.name)) AS casts
     FROM movies m
 		LEFT JOIN movie_genres mg ON m.id = mg.movie_id
 		LEFT JOIN genres g ON mg.genre_id = g.id
@@ -97,39 +130,6 @@ func FindAllMovies(param string) ([]Movie, error) {
     ORDER BY m.release_date ASC
 		`
 
-	} else {
-		query = `
-        SELECT m.id, m.title, m.overview, m.vote_average, m.poster_path, m.backdrop_path, m.release_date, m.runtime, m.popularity, m.admin_id, m.created_at, m.updated_at, 
-               COALESCE(array_agg(DISTINCT g.name) FILTER (WHERE g.name IS NOT NULL), '{}') AS genres,
-               COALESCE(array_agg(DISTINCT d.name) FILTER (WHERE d.name IS NOT NULL), '{}') AS directors,
-               COALESCE(array_agg(DISTINCT c.name) FILTER (WHERE c.name IS NOT NULL), '{}') AS casts
-        FROM movies m
-        LEFT JOIN movie_genres mg ON m.id = mg.movie_id
-        LEFT JOIN genres g ON mg.genre_id = g.id
-        LEFT JOIN movie_directors md ON m.id = md.movie_id
-        LEFT JOIN directors d ON md.director_id = d.id
-        LEFT JOIN movie_casts mc ON m.id = mc.movie_id
-        LEFT JOIN casts c ON mc.cast_id = c.id
-        GROUP BY m.id
-        ORDER BY m.release_date DESC`
-
-	}
-
-	query = `
-				SELECT m.id, m.title, m.overview, m.vote_average, m.poster_path, m.backdrop_path, m.release_date, m.runtime, m.popularity, m.admin_id, m.created_at, m.updated_at, 
-               COALESCE(array_agg(DISTINCT g.name) FILTER (WHERE g.name IS NOT NULL), '{}') AS genres,
-               COALESCE(array_agg(DISTINCT d.name) FILTER (WHERE d.name IS NOT NULL), '{}') AS directors,
-               COALESCE(array_agg(DISTINCT c.name) FILTER (WHERE c.name IS NOT NULL), '{}') AS casts
-        FROM movies m
-        LEFT JOIN movie_genres mg ON m.id = mg.movie_id
-        LEFT JOIN genres g ON mg.genre_id = g.id
-        LEFT JOIN movie_directors md ON m.id = md.movie_id
-        LEFT JOIN directors d ON md.director_id = d.id
-        LEFT JOIN movie_casts mc ON m.id = mc.movie_id
-        LEFT JOIN casts c ON mc.cast_id = c.id
-        GROUP BY m.id
-        ORDER BY m.created_at DESC
-				`
 
 	rows, err := conn.Query(context.Background(), query)
 	if err != nil {
