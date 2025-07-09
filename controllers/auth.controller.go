@@ -4,12 +4,11 @@ import (
 	"be-cinevo/dto"
 	"be-cinevo/models"
 	"be-cinevo/utils"
-	"context"
+	"net/http"
+	"time"
+
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
-	"net/http"
-	"strings"
-	"time"
 )
 
 // @Summary Register a new user
@@ -177,27 +176,45 @@ func ResetPassword(ctx *gin.Context) {
 }
 
 func LogoutUser(ctx *gin.Context) {
-	token := strings.Split(ctx.GetHeader("Authorization"), "Bearer ")
-	if len(token) < 2 {
+	token, exists := ctx.Get("token")
+	if !exists {
 		ctx.JSON(http.StatusBadRequest, utils.Response{
 			Success: false,
-			Message: "Invalid token format!",
+			Message: "Token not found in context",
 		})
 		return
 	}
-
-	tokenString := strings.TrimSpace(token[1])
-	err := utils.RedisClient.Set(context.Background(), "blacklist:"+tokenString, "true", 1*time.Hour).Err()
+	
+	tokenString := token.(string)
+	
+	exp, exists := ctx.Get("exp")
+	if !exists {
+		ctx.JSON(http.StatusBadRequest, utils.Response{
+			Success: false,
+			Message: "Expiration not found in context",
+		})
+		return
+	}
+	
+	expTime := time.Unix(int64(exp.(float64)), 0)
+	now := time.Now()
+	
+	ttl := expTime.Sub(now)
+	if ttl < 0 {
+		ttl = 1 * time.Minute 
+	}
+	
+	err := utils.RedisClient.Set(ctx, "blacklist:"+tokenString, "revoked", ttl).Err()
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, utils.Response{
 			Success: false,
-			Message: "Failed to logout!",
+			Message: "Failed to revoke token",
 		})
 		return
 	}
-
+	
 	ctx.JSON(http.StatusOK, utils.Response{
 		Success: true,
-		Message: "Logout successfully!",
+		Message: "Logout successful",
 	})
 }

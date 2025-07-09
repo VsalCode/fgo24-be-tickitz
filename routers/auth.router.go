@@ -1,14 +1,16 @@
-package routers;
+package routers
 
 import (
-	"github.com/gin-gonic/gin"
 	"be-cinevo/controllers"
+	"be-cinevo/middlewares"
+
+	"github.com/gin-gonic/gin"
 )
 
-func authRouters(r *gin.RouterGroup){
+func authRouters(r *gin.RouterGroup) {
 	r.POST("/register", controllers.RegisterUser)
-	r.POST("/login", controllers.LoginUser )
+	r.POST("/login", controllers.LoginUser)
 	r.POST("/forgot-password", controllers.ForgotPassword)
 	r.POST("/reset-password", controllers.ResetPassword)
-	r.POST("/logout", controllers.LogoutUser)
-} 
+	r.POST("/logout", middlewares.VerifyToken(), controllers.LogoutUser)
+}

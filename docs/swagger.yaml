@@ -379,6 +379,23 @@ paths:
       summary: Login a user
       tags:
       - Auth
+  /auth/logout:
+    post:
+      consumes:
+      - application/json
+      description: Logout user by adding the JWT token to Redis blacklist.
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Success message
+          schema:
+            $ref: '#/definitions/utils.Response'
+      security:
+      - BearerAuth: []
+      summary: Logout user
+      tags:
+      - Auth
   /auth/register:
     post:
       consumes:

@@ -2,7 +2,8 @@ package middlewares
 
 import (
 	"be-cinevo/utils"
-	"context"
+	"errors"
+	"fmt"
 	"net/http"
 	"os"
 	"strings"
@@ -10,90 +11,101 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/joho/godotenv"
-	"github.com/redis/go-redis/v9"
 )
 
 func VerifyToken() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		godotenv.Load()
 		secretKey := os.Getenv("APP_SECRET")
-		token := strings.Split(ctx.GetHeader("Authorization"), "Bearer ")
+		authHeader := ctx.GetHeader("Authorization")
 
-		if len(token) < 2 {
+		if authHeader == "" {
 			ctx.JSON(http.StatusUnauthorized, utils.Response{
 				Success: false,
-				Message: "Unauthorized!",
+				Message: "Authorization header missing!",
 			})
-			ctx.AbortWithStatus(http.StatusUnauthorized)
+			ctx.Abort()
 			return
 		}
 
-		tokenString := strings.TrimSpace(token[1])
-
-		_, err := utils.RedisClient.Get(context.Background(), "blacklist:"+tokenString).Result()
-		if err != redis.Nil {
+		tokenParts := strings.Split(authHeader, "Bearer ")
+		if len(tokenParts) != 2 {
 			ctx.JSON(http.StatusUnauthorized, utils.Response{
 				Success: false,
-				Message: "Token has been invalidated!",
+				Message: "Invalid token format!",
 			})
-			ctx.AbortWithStatus(http.StatusUnauthorized)
+			ctx.Abort()
 			return
 		}
 
-		rawToken, err := jwt.Parse(tokenString, func(t *jwt.Token) (interface{}, error) {
+		tokenString := strings.TrimSpace(tokenParts[1])
+		blacklisted, err := utils.RedisClient.Exists(ctx, "blacklist:"+tokenString).Result()
+		if err != nil {
+			ctx.JSON(http.StatusInternalServerError, utils.Response{
+				Success: false,
+				Message: "Internal server error",
+			})
+			ctx.Abort()
+			return
+		}
+
+		if blacklisted > 0 {
+			ctx.JSON(http.StatusUnauthorized, utils.Response{
+				Success: false,
+				Message: "Token has been revoked!",
+			})
+			ctx.Abort()
+			return
+		}
+
+		token, err := jwt.Parse(tokenString, func(t *jwt.Token) (interface{}, error) {
+			if _, ok := t.Method.(*jwt.SigningMethodHMAC); !ok {
+				return nil, fmt.Errorf("unexpected signing method: %v", t.Header["alg"])
+			}
 			return []byte(secretKey), nil
 		})
 
-		if err != nil {
-			if strings.Contains(err.Error(), "expired") {
+		if err != nil || !token.Valid {
+			if errors.Is(err, jwt.ErrTokenExpired) {
 				ctx.JSON(http.StatusUnauthorized, utils.Response{
 					Success: false,
-					Message: "Token Expired!",
+					Message: "Token expired!",
 				})
-				ctx.AbortWithStatus(http.StatusUnauthorized)
-				return
+			} else {
+				ctx.JSON(http.StatusUnauthorized, utils.Response{
+					Success: false,
+					Message: "Invalid token!",
+				})
 			}
-			ctx.JSON(http.StatusUnauthorized, utils.Response{
-				Success: false,
-				Message: "Token Invalid!",
-			})
-			ctx.AbortWithStatus(http.StatusUnauthorized)
+			ctx.Abort()
 			return
 		}
 
-		claims, ok := rawToken.Claims.(jwt.MapClaims)
-		if !ok || !rawToken.Valid {
-			ctx.JSON(http.StatusUnauthorized, utils.Response{
-				Success: false,
-				Message: "Token Invalid!",
-			})
-			ctx.AbortWithStatus(http.StatusUnauthorized)
-			return
-		}
-
-		userIdFloat, exists := claims["userId"]
-		if !exists {
+		claims, ok := token.Claims.(jwt.MapClaims)
+		if !ok {
 			ctx.JSON(http.StatusUnauthorized, utils.Response{
 				Success: false,
 				Message: "Invalid token claims!",
 			})
-			ctx.AbortWithStatus(http.StatusUnauthorized)
+			ctx.Abort()
 			return
 		}
 
-		userId := int(userIdFloat.(float64))
-		role, exists := claims["role"].(string)
-		if !exists {
+		exp, ok := claims["exp"].(float64)
+		if !ok {
 			ctx.JSON(http.StatusUnauthorized, utils.Response{
 				Success: false,
-				Message: "Invalid token claims!",
+				Message: "Missing token expiration!",
 			})
-			ctx.AbortWithStatus(http.StatusUnauthorized)
+			ctx.Abort()
 			return
 		}
 
-		ctx.Set("userId", userId)
-		ctx.Set("role", role)
+		ctx.Set("userId", int(claims["userId"].(float64)))
+		ctx.Set("role", claims["role"].(string))
+		ctx.Set("token", tokenString)
+		ctx.Set("exp", exp)
+
 		ctx.Next()
 	}
 }
