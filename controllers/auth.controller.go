@@ -175,6 +175,15 @@ func ResetPassword(ctx *gin.Context) {
 	})
 }
 
+// LogoutUser godoc
+// @Summary Logout user
+// @Description Logout user by adding the JWT token to Redis blacklist. 
+// @Tags Auth
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Success 200 {object} utils.Response "Success message"
+// @Router /auth/logout [post]
 func LogoutUser(ctx *gin.Context) {
 	token, exists := ctx.Get("token")
 	if !exists {
