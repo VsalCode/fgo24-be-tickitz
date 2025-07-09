@@ -3,6 +3,8 @@ package models
 import (
 	"be-cinevo/utils"
 	"context"
+	"encoding/json"
+	"fmt"
 	"time"
 
 	"github.com/jackc/pgx/v5"
@@ -30,6 +32,18 @@ func HandleShowAllMovies(key string, limit int, offset int, filter string) ([]Mo
 	conn, err := utils.DBConnect()
 	if err != nil {
 		return nil, 0, err
+	}
+	defer conn.Close()
+
+ redisKey := fmt.Sprintf("movies:%s:%d:%d:%s", key, limit, offset, filter)
+
+	cachedMovies, err := utils.RedisClient.Get(context.Background(), redisKey).Result()
+	if err == nil {
+		var movies []Movie
+		err = json.Unmarshal([]byte(cachedMovies), &movies)
+		if err == nil {
+			return movies, len(movies), nil
+		}
 	}
 
 	query := `
@@ -67,6 +81,11 @@ func HandleShowAllMovies(key string, limit int, offset int, filter string) ([]Mo
 	err = conn.QueryRow(context.Background(), countQuery, "%"+key+"%").Scan(&total)
 	if err != nil {
 		return nil, 0, err
+	}
+
+	moviesJSON, err := json.Marshal(movies)
+	if err == nil {
+		utils.RedisClient.Set(context.Background(), redisKey, moviesJSON, 0) 
 	}
 
 	return movies, total, nil
