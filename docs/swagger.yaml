@@ -190,8 +190,6 @@ definitions:
         type: string
       id:
         type: integer
-      password:
-        type: string
       phone:
         type: string
       roles:

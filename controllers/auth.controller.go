@@ -33,7 +33,7 @@ func RegisterUser(ctx *gin.Context) {
 		return
 	}
 
-	result, err := models.GetNewUser(req)
+	err = models.GetNewUser(req)
 
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, utils.Response{
@@ -47,7 +47,6 @@ func RegisterUser(ctx *gin.Context) {
 	ctx.JSON(http.StatusCreated, utils.Response{
 		Success: true,
 		Message: "User registered successfully",
-		Results: result,
 	})
 
 }

@@ -4,17 +4,16 @@ import (
 	"be-cinevo/dto"
 	"be-cinevo/utils"
 	"context"
+	"fmt"
 	"strings"
 	"time"
-	"fmt"
-	"github.com/jackc/pgx/v5"
 	"github.com/redis/go-redis/v9"
 )
 
-func GetNewUser(req dto.RegisterRequest) (User, error) {
+func GetNewUser(req dto.RegisterRequest) error {
 	conn, err := utils.DBConnect()
 	if err != nil {
-		return User{}, err
+		return err
 	}
 
 	tempName := strings.Split(req.Email, "@")
@@ -27,12 +26,12 @@ func GetNewUser(req dto.RegisterRequest) (User, error) {
 		fullname, "",
 	).Scan(&profileID)
 	if err != nil {
-		return User{}, err
+		return err
 	}
 
 	passwordHash, err := utils.HashPassword(req.Password)
 	if err != nil {
-		return User{}, err
+		return err
 	}
 
 	var userId int
@@ -46,30 +45,10 @@ func GetNewUser(req dto.RegisterRequest) (User, error) {
 	).Scan(&userId)
 
 	if err != nil {
-		return User{}, err
+		return err
 	}
 
-	rows, err := conn.Query(
-		context.Background(),
-		`
-		SELECT u.id, p.fullname, u.email, u.password, p.phone, u.roles
-    FROM users u
-    JOIN profiles p ON u.profile_id = p.id
-    WHERE u.id = $1
-		`,
-		userId,
-	)
-	if err != nil {
-		return User{}, err
-	}
-	defer rows.Close()
-
-	user, err := pgx.CollectOneRow[User](rows, pgx.RowToStructByName)
-	if err != nil {
-		return User{}, err
-	}
-
-	return user, nil
+	return nil
 }
 
 func ValidateLogin(req dto.LoginRequest) (int, string, error) {
