@@ -4,7 +4,7 @@ import (
 	"be-cinevo/dto"
 	"be-cinevo/utils"
 	"context"
-
+	"fmt"
 	"time"
 
 	"github.com/jackc/pgx/v5"
@@ -46,16 +46,42 @@ func HandleBookingTicket(id int, req Transactions) error {
 	}
 	defer tx.Rollback(context.Background())
 
+	for _, seat := range req.Seats {
+		var exists bool
+		checkQuery := `
+			SELECT EXISTS (
+				SELECT 1 FROM transaction_details td
+				JOIN transactions t ON td.transaction_id = t.id
+				WHERE td.seat = $1 
+				AND t.show_time = $2
+				AND t.show_date = $3
+				AND t.cinema = $4
+				AND t.movie_id = $5
+			)
+		`
+		err = tx.QueryRow(
+			context.Background(),
+			checkQuery,
+			seat, req.Time, req.Date, req.Cinema, req.MovieID,
+		).Scan(&exists)
+		if err != nil {
+			return err
+		}
+		if exists {
+			return fmt.Errorf("seat %s has already been booked for the selected time, cinema, and date", seat)
+		}
+	}
+
 	var transactionID int
 	query := `
-        INSERT INTO transactions (
-            customer_fullname, customer_email, customer_phone, amount,
-            cinema, location, show_time, show_date,
-            user_id, movie_id, payment_method_id
-        )
-        VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)
-        RETURNING id
-    `
+		INSERT INTO transactions (
+			customer_fullname, customer_email, customer_phone, amount,
+			cinema, location, show_time, show_date,
+			user_id, movie_id, payment_method_id
+		)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+		RETURNING id
+	`
 	err = tx.QueryRow(
 		context.Background(),
 		query,
@@ -84,6 +110,7 @@ func HandleBookingTicket(id int, req Transactions) error {
 
 	return nil
 }
+
 
 func GetTicketResult(id int) (dto.Ticket, error) {
 		conn, err := utils.DBConnect()
