@@ -4,6 +4,7 @@ import (
 	"be-cinevo/dto"
 	"be-cinevo/utils"
 	"context"
+	"fmt"
 
 	"github.com/jackc/pgx/v5"
 )
@@ -50,27 +51,46 @@ func FindUserById(id int) (User, error) {
 func GetUpdatedUserInfo(id int, req dto.UpdatedUser) error {
 	conn, err := utils.DBConnect()
 	if err != nil {
-		return err
+		return fmt.Errorf("database connection error: %v", err)
 	}
 	defer conn.Close()
 
+	tx, err := conn.Begin(context.Background())
+	if err != nil {
+		return fmt.Errorf("transaction start error: %v", err)
+	}
+	defer func() {
+		if err != nil {
+			tx.Rollback(context.Background())
+			return
+		}
+		err = tx.Commit(context.Background())
+	}()
 	var email, password string
 	var profileID int
-	err = conn.QueryRow(context.Background(),
+	err = tx.QueryRow(context.Background(),
 		`SELECT email, password, profile_id FROM users WHERE id = $1`, id).
 		Scan(&email, &password, &profileID)
 	if err != nil {
-		return err
+		if err == pgx.ErrNoRows {
+			return fmt.Errorf("user not found")
+		}
+		return fmt.Errorf("query error: %v", err)
 	}
 
 	var fullname, phone string
 	if profileID != 0 {
-		err = conn.QueryRow(context.Background(),
+		err = tx.QueryRow(context.Background(),
 			`SELECT fullname, phone FROM profiles WHERE id = $1`, profileID).
 			Scan(&fullname, &phone)
 		if err != nil {
-			return err
+			return fmt.Errorf("profile query error: %v", err)
 		}
+	}
+
+	passwordHash, err := utils.HashPassword(req.Password)
+	if err != nil {
+		return fmt.Errorf("password hashing error: %v", err)
 	}
 
 	newEmail := email
@@ -79,7 +99,7 @@ func GetUpdatedUserInfo(id int, req dto.UpdatedUser) error {
 	}
 	newPassword := password
 	if req.Password != "" {
-		newPassword = req.Password
+		newPassword = passwordHash
 	}
 	newFullname := fullname
 	if req.Fullname != "" {
@@ -90,19 +110,19 @@ func GetUpdatedUserInfo(id int, req dto.UpdatedUser) error {
 		newPhone = req.Phone
 	}
 
-	_, err = conn.Exec(context.Background(),
+	_, err = tx.Exec(context.Background(),
 		`UPDATE users SET email = $1, password = $2 WHERE id = $3`,
 		newEmail, newPassword, id)
 	if err != nil {
-		return err
+		return fmt.Errorf("user update error: %v", err)
 	}
 
 	if profileID != 0 {
-		_, err = conn.Exec(context.Background(),
+		_, err = tx.Exec(context.Background(),
 			`UPDATE profiles SET fullname = $1, phone = $2 WHERE id = $3`,
 			newFullname, newPhone, profileID)
 		if err != nil {
-			return err
+			return fmt.Errorf("profile update error: %v", err)
 		}
 	}
 
