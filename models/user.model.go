@@ -27,7 +27,7 @@ func FindUserById(id int) (User, error) {
 	query := `
 	SELECT u.id, p.fullname, u.email, p.phone, u.roles FROM users u 
 	LEFT JOIN profiles p ON u.profile_id = p.id 
-	WHERE u.id = $1 AND roles = 'user'
+	WHERE u.id = $1 
 	`
 
 	row, err := conn.Query(

@@ -1,15 +1,19 @@
 package routers
 
 import (
-	"github.com/gin-gonic/gin"
-
 	"be-cinevo/docs"
-
+	"github.com/gin-contrib/cors"
+	"github.com/gin-gonic/gin"
 	swaggerfiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
 )
 
 func CombineRouters(r *gin.Engine) {
+	r.Use(cors.New(cors.Config{
+		AllowOrigins: []string{"http://localhost:5173"}, 
+		AllowMethods: []string{"GET", "POST", "PATCH", "DELETE"},
+		AllowHeaders: []string{"Authorization", "Origin", "Content-Type"},
+	}))
 	authRouters(r.Group("/auth"))
 	movieRouters(r.Group("/movies"))
 	adminRouters(r.Group("/admin"))
