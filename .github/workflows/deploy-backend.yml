@@ -1,0 +1,65 @@
+name: Build & Deploy to VPS
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-and-push:
+    name: Build & Push Docker Image
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Log in to GHCR
+        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+
+      - name: Build Docker Image
+        run: docker build -t ghcr.io/vsalcode/fgo24-be-tickitz:latest .
+
+      - name: Push Docker Image
+        run: docker push ghcr.io/vsalcode/fgo24-be-tickitz:latest
+
+  deploy:
+    name: Deploy & Migrate
+    needs: build-and-push
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Copy Migrations to VPS
+        uses: appleboy/scp-action@v0.1.4
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: faisal
+          port: 9401
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          source: "migrations"
+          target: "/home/faisal/deploy"
+
+      - name: SSH Deploy to VPS
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.VPS_HOST }}
+          username: faisal
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: 9401
+          script: |
+            cd /home/faisal/deploy
+
+            docker login ghcr.io -u ${{ github.actor }} --password ${{ secrets.GITHUB_TOKEN }}
+            docker compose pull
+            docker compose up -d db redis
+            docker run --rm \
+              --network deploy_netapp \
+              -v "/home/faisal/deploy/migrations:/migrations" \
+              migrate/migrate \
+              -path=/migrations \
+              -database "postgres://postgres:1@db:5432/cinevodb?sslmode=disable" \
+              up
+            docker compose up -d app
