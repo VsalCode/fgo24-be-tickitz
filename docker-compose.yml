@@ -9,7 +9,7 @@ services:
       - 9403:8080
      networks:
       - netapp
-  db:
+  postgres:
     image: postgres
     environment:
       - POSTGRES_PASSWORD=1
@@ -28,3 +28,5 @@ volumes:
   data_redis:
 networks:
   netapp:
+    name: deploy_netapp
+    driver: bridge
