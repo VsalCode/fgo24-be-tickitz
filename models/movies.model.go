@@ -1,6 +1,7 @@
 package models
 
 import (
+	"be-cinevo/dto"
 	"be-cinevo/utils"
 	"context"
 	"encoding/json"
@@ -11,24 +12,44 @@ import (
 )
 
 type Movie struct {
-	ID           int       `json:"id"`
-	Title        string    `json:"title"`
-	Overview     string    `json:"overview"`
-	VoteAverage  int       `json:"vote_average"`
-	PosterPath   string    `json:"poster_path"`
-	BackdropPath string    `json:"backdrop_path"`
-	ReleaseDate  time.Time `json:"release_date"`
-	Runtime      int       `json:"runtime"`
-	Popularity   int       `json:"popularity"`
-	AdminID      int       `json:"admin_id"`
-	CreatedAt    time.Time `json:"created_at"`
-	UpdatedAt    time.Time `json:"updated_at"`
-	Genres       []string  `json:"genres"`
-	Directors    []string  `json:"directors"`
-	Casts        []string  `json:"casts"`
+	ID           int       `json:"-"`
+	Title        string    `json:"-"`
+	Overview     string    `json:"-"`
+	VoteAverage  int       `json:"-"`
+	PosterPath   string    `json:"-"`
+	BackdropPath string    `json:"-"`
+	ReleaseDate  time.Time `json:"-"`
+	Runtime      int       `json:"-"`
+	Popularity   int       `json:"-"`
+	AdminID      int       `json:"-"`
+	CreatedAt    time.Time `json:"-"`
+	UpdatedAt    time.Time `json:"-"`
+	Genres       []string  `json:"-"`
+	Directors    []string  `json:"-"`
+	Casts        []string  `json:"-"`
 }
 
-func HandleShowAllMovies(key string, limit int, offset int, filter string) ([]Movie, int, error) {
+func toMovieResponse(m Movie) dto.MovieResponse {
+	return dto.MovieResponse{
+		ID:           m.ID,
+		Title:        m.Title,
+		Overview:     m.Overview,
+		VoteAverage:  m.VoteAverage,
+		PosterPath:   m.PosterPath,
+		BackdropPath: m.BackdropPath,
+		ReleaseDate:  m.ReleaseDate.Format("2006-01-02"),
+		Runtime:      m.Runtime,
+		Popularity:   m.Popularity,
+		AdminID:      m.AdminID,
+		CreatedAt:    m.CreatedAt,
+		UpdatedAt:    m.UpdatedAt,
+		Genres:       m.Genres,
+		Directors:    m.Directors,
+		Casts:        m.Casts,
+	}
+}
+
+func HandleShowAllMovies(key string, limit int, offset int, filter string) ([]dto.MovieResponse, int, error) {
 	conn, err := utils.DBConnect()
 	if err != nil {
 		return nil, 0, err
@@ -39,7 +60,7 @@ func HandleShowAllMovies(key string, limit int, offset int, filter string) ([]Mo
 
 	cachedMovies, err := utils.RedisClient.Get(context.Background(), redisKey).Result()
 	if err == nil {
-		var movies []Movie
+		var movies []dto.MovieResponse
 		err = json.Unmarshal([]byte(cachedMovies), &movies)
 		if err == nil {
 			return movies, len(movies), nil
@@ -78,9 +99,14 @@ func HandleShowAllMovies(key string, limit int, offset int, filter string) ([]Mo
 	}
 	defer rows.Close()
 
-	movies, err := pgx.CollectRows[Movie](rows, pgx.RowToStructByName)
+	dbMovies, err := pgx.CollectRows[Movie](rows, pgx.RowToStructByName)
 	if err != nil {
 		return nil, 0, err
+	}
+
+	movies := make([]dto.MovieResponse, len(dbMovies))
+	for i, m := range dbMovies {
+		movies[i] = toMovieResponse(m)
 	}
 
 	countQuery := `
@@ -105,7 +131,7 @@ func HandleShowAllMovies(key string, limit int, offset int, filter string) ([]Mo
 	return movies, total, nil
 }
 
-func HandleNowShowingMovies() ([]Movie, error) {
+func HandleNowShowingMovies() ([]dto.MovieResponse, error) {
 	conn, err := utils.DBConnect()
 	if err != nil {
 		return nil, err
@@ -137,15 +163,20 @@ func HandleNowShowingMovies() ([]Movie, error) {
 	}
 	defer rows.Close()
 
-	movies, err := pgx.CollectRows[Movie](rows, pgx.RowToStructByName)
+	dbMovies, err := pgx.CollectRows[Movie](rows, pgx.RowToStructByName)
 	if err != nil {
 		return nil, err
+	}
+
+	movies := make([]dto.MovieResponse, len(dbMovies))
+	for i, m := range dbMovies {
+		movies[i] = toMovieResponse(m)
 	}
 
 	return movies, nil
 }
 
-func HandleUpComingMovies() ([]Movie, error) {
+func HandleUpComingMovies() ([]dto.MovieResponse, error) {
 	conn, err := utils.DBConnect()
 	if err != nil {
 		return nil, err
@@ -176,9 +207,14 @@ func HandleUpComingMovies() ([]Movie, error) {
 	}
 	defer rows.Close()
 
-	movies, err := pgx.CollectRows[Movie](rows, pgx.RowToStructByName)
+	dbMovies, err := pgx.CollectRows[Movie](rows, pgx.RowToStructByName)
 	if err != nil {
 		return nil, err
+	}
+
+	movies := make([]dto.MovieResponse, len(dbMovies))
+	for i, m := range dbMovies {
+		movies[i] = toMovieResponse(m)
 	}
 
 	return movies, nil

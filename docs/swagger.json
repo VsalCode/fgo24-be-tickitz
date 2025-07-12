@@ -852,63 +852,7 @@
             }
         },
         "models.Movie": {
-            "type": "object",
-            "properties": {
-                "admin_id": {
-                    "type": "integer"
-                },
-                "backdrop_path": {
-                    "type": "string"
-                },
-                "casts": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
-                },
-                "created_at": {
-                    "type": "string"
-                },
-                "directors": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
-                },
-                "genres": {
-                    "type": "array",
-                    "items": {
-                        "type": "string"
-                    }
-                },
-                "id": {
-                    "type": "integer"
-                },
-                "overview": {
-                    "type": "string"
-                },
-                "popularity": {
-                    "type": "integer"
-                },
-                "poster_path": {
-                    "type": "string"
-                },
-                "release_date": {
-                    "type": "string"
-                },
-                "runtime": {
-                    "type": "integer"
-                },
-                "title": {
-                    "type": "string"
-                },
-                "updated_at": {
-                    "type": "string"
-                },
-                "vote_average": {
-                    "type": "integer"
-                }
-            }
+            "type": "object"
         },
         "models.Transactions": {
             "type": "object",

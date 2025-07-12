@@ -100,43 +100,6 @@ definitions:
     - email
     type: object
   models.Movie:
-    properties:
-      admin_id:
-        type: integer
-      backdrop_path:
-        type: string
-      casts:
-        items:
-          type: string
-        type: array
-      created_at:
-        type: string
-      directors:
-        items:
-          type: string
-        type: array
-      genres:
-        items:
-          type: string
-        type: array
-      id:
-        type: integer
-      overview:
-        type: string
-      popularity:
-        type: integer
-      poster_path:
-        type: string
-      release_date:
-        type: string
-      runtime:
-        type: integer
-      title:
-        type: string
-      updated_at:
-        type: string
-      vote_average:
-        type: integer
     type: object
   models.Transactions:
     properties:
