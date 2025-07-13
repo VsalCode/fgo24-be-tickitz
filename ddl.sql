@@ -117,8 +117,6 @@ CREATE TABLE transaction_details (
     updated_at TIMESTAMP WITHOUT TIME ZONE DEFAULT NOW()
 );
 
-INSERT INTO users (email, password, roles, profile_id)
-VALUES ('admin@gmail.com', 'admin123', 'admin', NULL);
 
 CREATE OR REPLACE FUNCTION trigger_set_timestamp()
 RETURNS TRIGGER AS $$

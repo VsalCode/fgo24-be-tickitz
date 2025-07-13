@@ -6,8 +6,7 @@ services:
     networks:
       - netapp
     restart: unless-stopped
-      
-  backend_app:
+  backend_app:  
     image: ghcr.io/vsalcode/fgo24-be-tickitz:latest
     ports:
       - "9403:8080"
@@ -38,6 +37,7 @@ services:
       - POSTGRES_DB=cinevodb
     volumes:
       - data_postgres:/var/lib/postgresql/data
+      - ./sql-scripts:/docker-entrypoint-initdb.d  
     networks:
       - netapp
     healthcheck:

@@ -1,3 +1,6 @@
+INSERT INTO users (email, password, roles, profile_id)
+VALUES ('admin@gmail.com', '$2a$14$ClJPwvY1vcIU5ZNy5WbBquM47iK28TZFh0NQtDExr4DiFrIzuD3RK', 'admin', NULL);
+
 INSERT INTO genres (name) VALUES
 ('Action'), -- id 1, dst
 ('Adventure'),
@@ -83,10 +86,6 @@ INSERT INTO casts (name) VALUES
 ('Owen Wilson'),
 ('Rachel McAdams'),
 ('Marion Cotillard');
-
-SELECT u.id, p.fullname, u.email, u.password, p.phone FROM users u 
-JOIN profiles p ON u.profile_id = p.id 
-WHERE u.id = 2 AND roles = 'user';
 
 INSERT INTO payment_method (name)
 VALUES ('dana'),
