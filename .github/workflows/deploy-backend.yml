@@ -1,15 +1,12 @@
 name: Build & Deploy to VPS
-
 on:
   push:
     branches:
       - main
-
 jobs:
   build-and-push:
     name: Build & Push Docker Image
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
@@ -22,12 +19,10 @@ jobs:
 
       - name: Push Docker Image
         run: docker push ghcr.io/vsalcode/fgo24-be-tickitz:latest
-
   deploy:
     name: Deploy & Migrate
     needs: build-and-push
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
@@ -70,17 +65,15 @@ jobs:
             
             echo "Waiting for database to be ready..."
             for i in {1..60}; do
-              container_state=$(docker compose ps -q db | xargs docker inspect -f '{{.State.Status}}' 2>/dev/null)
-              if [ "$container_state" = "running" ]; then
-                if docker compose exec -T db pg_isready -U postgres; then
-                  echo "Database is ready!"
-                  break
-                fi
+              if docker compose exec -T db pg_isready -U postgres; then
+                echo "Database is ready!"
+                break
               fi
               echo "Waiting for database... ($i/60)"
               sleep 2
             done
             
+            # Jalankan migrasi
             docker run --rm \
               --network deploy_netapp \
               -v "/home/faisal/deploy/migrations:/migrations" \
@@ -89,17 +82,16 @@ jobs:
               -database "postgres://postgres:1@db:5432/cinevodb?sslmode=disable" \
               up
             
+            # Jalankan dml.sql SETELAH migrasi
             docker run --rm \
               --network deploy_netapp \
-              -v "/home/faisal/deploy/sql-scripts:/scripts" \
+              -v "/home/faisal/deploy:/scripts" \
               postgres:latest \
               psql "postgresql://postgres:1@db:5432/cinevodb" -f /scripts/dml.sql
             
+            # Start aplikasi
             docker compose up -d
             
-            echo "Deployment verification:"
-            docker compose ps
+            # Verifikasi
             echo "Movie count:"
             docker compose exec db psql -U postgres -d cinevodb -c "SELECT COUNT(*) FROM movies;"
-            echo "Genre count:"
-            docker compose exec db psql -U postgres -d cinevodb -c "SELECT COUNT(*) FROM genres;"
