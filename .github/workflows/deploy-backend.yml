@@ -51,14 +51,15 @@ jobs:
           port: 9401
           script: |
             cd /home/faisal/deploy
-      
+
             docker network rm deploy_netapp || true
             echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
             docker compose pull
             docker network create --label com.docker.compose.network=netapp --label com.docker.compose.project=deploy deploy_netapp || true
+            
             docker compose up -d db redis
-            docker compose run --rm db pg_isready -U postgres -h db -t 30
-          
+            docker compose exec db pg_isready -U postgres -h localhost -t 30
+            
             docker run --rm \
               --network deploy_netapp \
               -v "/home/faisal/deploy/migrations:/migrations" \
@@ -66,5 +67,6 @@ jobs:
               -path=/migrations \
               -database "postgres://postgres:1@db:5432/cinevodb?sslmode=disable" \
               up
-        
-              docker compose up -d app
+            
+            # Start aplikasi
+            docker compose up -d app cinevo

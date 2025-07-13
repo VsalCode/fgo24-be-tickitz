@@ -3,29 +3,53 @@ services:
     image: ghcr.io/vsalcode/fgo24-react-cinevo:latest
     ports:
       - 9402:80
-  app:
-     image: ghcr.io/vsalcode/fgo24-be-tickitz:latest
-     ports:
-      - 9403:8080
-     networks:
+    networks:
       - netapp
-  postgres:
-    image: postgres
+  app:
+    image: ghcr.io/vsalcode/fgo24-be-tickitz:latest
+    ports:
+      - 9403:8080
+    networks:
+      - netapp
     environment:
+      - PGUSER=postgres
+      - PGPASSWORD=1
+      - PGHOST=db
+      - PGPORT=5432
+      - PGDATABASE=cinevodb
+      - REDIS_ADDR=redis:6379
+      - REDIS_PASSWORD=
+      - APP_SECRET=uy8M7ikooTWJL7tabmGHhrcWsZwjHzXf
+      - APP_PASSWORD=ujulqdxnfzobijwv
+    depends_on:
+      - db
+      - redis
+  db:
+    image: postgres:15
+    environment:
+      - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=1
+      - POSTGRES_DB=cinevodb
     volumes:
       - data_postgres:/var/lib/postgresql/data
     networks:
       - netapp
+    ports:
+      - "5432:5432"  
+      
   redis:
-    image: redis
+    image: redis:7
     volumes:
       - data_redis:/data
     networks:
       - netapp
+    ports:
+      - "6379:6379"  
+
 volumes:
   data_postgres:
   data_redis:
+  
 networks:
   netapp:
     name: deploy_netapp
