@@ -118,3 +118,50 @@ func GetUpComingMovies(ctx *gin.Context) {
 		Results: movies,
 	})
 }
+
+// controller
+// GetMovieDetail godoc
+// @Summary Get movie details by ID
+// @Description Get detailed information about a movie including genres, directors, and casts
+// @Tags Movies
+// @Accept json
+// @Produce json
+// @Param id path int true "Movie ID"
+// @Success 200 {object} utils.Response{results=dto.MovieResponse}
+// @Failure 400 {object} utils.Response
+// @Failure 404 {object} utils.Response
+// @Failure 500 {object} utils.Response
+// @Router /movies/{id} [get]
+func GetMovieDetail(ctx *gin.Context) {
+	idStr := ctx.Param("id")
+	id, err := strconv.Atoi(idStr)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, utils.Response{
+			Success: false,
+			Message: "Invalid movie ID",
+			Errors:  "ID must be an integer",
+		})
+		return
+	}
+
+	movie, err := models.FindMovieById(id)
+	if err != nil {
+		status := http.StatusInternalServerError
+		if err.Error() == "movie not found" {
+			status = http.StatusNotFound
+		}
+
+		ctx.JSON(status, utils.Response{
+			Success: false,
+			Message: "Failed to retrieve movie",
+			Errors:  err.Error(),
+		})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, utils.Response{
+		Success: true,
+		Message: "Movie retrieved successfully",
+		Results: movie,
+	})
+}

@@ -67,6 +67,45 @@ definitions:
     - title
     - vote_average
     type: object
+  dto.MovieResponse:
+    properties:
+      admin_id:
+        type: integer
+      backdrop_path:
+        type: string
+      casts:
+        items:
+          type: string
+        type: array
+      created_at:
+        type: string
+      directors:
+        items:
+          type: string
+        type: array
+      genres:
+        items:
+          type: string
+        type: array
+      id:
+        type: integer
+      overview:
+        type: string
+      popularity:
+        type: integer
+      poster_path:
+        type: string
+      release_date:
+        type: string
+      runtime:
+        type: integer
+      title:
+        type: string
+      updated_at:
+        type: string
+      vote_average:
+        type: integer
+    type: object
   dto.RegisterRequest:
     properties:
       confirmPassword:
@@ -443,6 +482,45 @@ paths:
                   type: array
               type: object
       summary: Get all movies
+      tags:
+      - Movies
+  /movies/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Get detailed information about a movie including genres, directors,
+        and casts
+      parameters:
+      - description: Movie ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/utils.Response'
+            - properties:
+                results:
+                  $ref: '#/definitions/dto.MovieResponse'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/utils.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.Response'
+      summary: Get movie details by ID
       tags:
       - Movies
   /movies/now-showing:
