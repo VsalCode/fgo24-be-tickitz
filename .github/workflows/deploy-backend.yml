@@ -51,14 +51,35 @@ jobs:
           port: 9401
           script: |
             cd /home/faisal/deploy
-
-            docker network rm deploy_netapp || true
+            
+            docker stop $(docker ps -q --filter publish=9402) 2>/dev/null || true
+            docker stop $(docker ps -q --filter publish=9403) 2>/dev/null || true
+            
+            docker compose down --remove-orphans
+            docker network rm deploy_netapp 2>/dev/null || true
+            
             echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+            
             docker compose pull
+            
             docker network create --label com.docker.compose.network=netapp --label com.docker.compose.project=deploy deploy_netapp || true
             
+            docker volume rm deploy_data_postgres 2>/dev/null || true
+            
             docker compose up -d db redis
-            docker compose exec db pg_isready -U postgres -h localhost -t 30
+            
+            echo "Waiting for database to be ready..."
+            for i in {1..60}; do  # Increased timeout
+              container_state=$(docker compose ps -q db | xargs docker inspect -f '{{.State.Status}}' 2>/dev/null)
+              if [ "$container_state" = "running" ]; then
+                if docker compose exec -T db pg_isready -U postgres; then
+                  echo "Database is ready!"
+                  break
+                fi
+              fi
+              echo "Waiting for database... ($i/60)"
+              sleep 2
+            done
             
             docker run --rm \
               --network deploy_netapp \
@@ -68,5 +89,8 @@ jobs:
               -database "postgres://postgres:1@db:5432/cinevodb?sslmode=disable" \
               up
             
-            # Start aplikasi
-            docker compose up -d app cinevo
+            docker compose up -d
+            
+            echo "Deployment verification:"
+            docker compose ps
+            curl -I http://localhost:9403 || true
