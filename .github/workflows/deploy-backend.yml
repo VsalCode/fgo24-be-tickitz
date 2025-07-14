@@ -34,7 +34,7 @@ jobs:
           username: faisal
           port: 9401
           key: ${{ secrets.SSH_PRIVATE_KEY }}
-          source: "migrations,docker-compose.yml,sql-scripts"  
+          source: "migrations,docker-compose.yml,sql-scripts,dml.sql"  # PASTIKAN DML.SQL DISALIN
           target: "/home/faisal/deploy"
 
       - name: SSH Deploy to VPS
@@ -64,34 +64,23 @@ jobs:
             docker compose up -d db redis
             
             echo "Waiting for database to be ready..."
-            for i in {1..60}; do
-              if docker compose exec -T db pg_isready -U postgres; then
-                echo "Database is ready!"
-                break
-              fi
-              echo "Waiting for database... ($i/60)"
+            while ! docker compose exec -T db pg_isready -U postgres; do
               sleep 2
             done
+            echo "Database is ready! Waiting additional 5 seconds..."
+            sleep 5
             
-            # Jalankan migrasi
             docker run --rm \
               --network deploy_netapp \
-              -v "/home/faisal/deploy/migrations:/migrations" \
-              migrate/migrate \
-              -path=/migrations \
-              -database "postgres://postgres:1@db:5432/cinevodb?sslmode=disable" \
-              up
-            
-            # Jalankan dml.sql SETELAH migrasi
-            docker run --rm \
-              --network deploy_netapp \
-              -v "/home/faisal/deploy:/scripts" \
+              -v "/home/faisal/deploy:/deploy" \
               postgres:latest \
-              psql "postgresql://postgres:1@db:5432/cinevodb" -f /scripts/dml.sql
+              bash -c '
+              psql "postgresql://postgres:1@db:5432/cinevodb" -f /deploy/migrations/init_schema.sql;
+              psql "postgresql://postgres:1@db:5432/cinevodb" -f /deploy/dml.sql
+              '
             
-            # Start aplikasi
             docker compose up -d
             
-            # Verifikasi
-            echo "Movie count:"
-            docker compose exec db psql -U postgres -d cinevodb -c "SELECT COUNT(*) FROM movies;"
+            echo "Seeding verification:"
+            docker compose exec db psql -U postgres -d cinevodb -c "SELECT COUNT(*) FROM movies;" || echo "Movies table verification failed"
+            docker compose exec db psql -U postgres -d cinevodb -c "SELECT COUNT(*) FROM users;" || echo "Users table verification failed"

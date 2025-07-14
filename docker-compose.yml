@@ -27,8 +27,7 @@ services:
         condition: service_healthy
       redis:
         condition: service_started
-    restart: unless-stopped
-      
+    restart: unless-stopped      
   db:
     image: postgres
     environment:
@@ -45,8 +44,7 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
-    restart: unless-stopped
-      
+    restart: unless-stopped 
   redis:
     image: redis
     volumes:
