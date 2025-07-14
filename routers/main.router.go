@@ -10,7 +10,7 @@ import (
 
 func CombineRouters(r *gin.Engine) {
 	r.Use(cors.New(cors.Config{
-		AllowOrigins: []string{"http://localhost:5173"}, 
+		AllowOrigins: []string{"http://146.190.102.54:9402"}, 
 		AllowMethods: []string{"GET", "POST", "PATCH", "DELETE"},
 		AllowHeaders: []string{"Authorization", "Origin", "Content-Type"},
 	}))
