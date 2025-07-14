@@ -72,15 +72,20 @@ jobs:
             
             docker run --rm \
               --network deploy_netapp \
-              -v "/home/faisal/deploy:/deploy" \
+              -v "/home/faisal/deploy/migrations:/migrations" \
+              migrate/migrate \
+              -path=/migrations \
+              -database "postgres://postgres:1@db:5432/cinevodb?sslmode=disable" \
+              up
+            
+            docker run --rm \
+              --network deploy_netapp \
+              -v "/home/faisal/deploy:/scripts" \
               postgres:latest \
-              bash -c '
-              psql "postgresql://postgres:1@db:5432/cinevodb" -f /deploy/migrations/init_schema.sql;
-              psql "postgresql://postgres:1@db:5432/cinevodb" -f /deploy/dml.sql
-              '
+              psql "postgresql://postgres:1@db:5432/cinevodb" -f /scripts/dml.sql
             
             docker compose up -d
             
             echo "Seeding verification:"
-            docker compose exec db psql -U postgres -d cinevodb -c "SELECT COUNT(*) FROM movies;" || echo "Movies table verification failed"
-            docker compose exec db psql -U postgres -d cinevodb -c "SELECT COUNT(*) FROM users;" || echo "Users table verification failed"
+            docker compose exec db psql -U postgres -d cinevodb -c "SELECT COUNT(*) FROM movies;"
+            docker compose exec db psql -U postgres -d cinevodb -c "SELECT COUNT(*) FROM users;"
