@@ -1,5 +1,8 @@
+INSERT INTO profiles (fullname, phone)
+VALUES ('minevo', '081399090477');
+
 INSERT INTO users (email, password, roles, profile_id)
-VALUES ('admin@gmail.com', '$2a$14$ClJPwvY1vcIU5ZNy5WbBquM47iK28TZFh0NQtDExr4DiFrIzuD3RK', 'admin', NULL);
+VALUES ('admin@cinevo.com', '$2a$14$ClJPwvY1vcIU5ZNy5WbBquM47iK28TZFh0NQtDExr4DiFrIzuD3RK', 'admin', 1);
 
 INSERT INTO genres (name) VALUES
 ('Action'), -- id 1, dst
