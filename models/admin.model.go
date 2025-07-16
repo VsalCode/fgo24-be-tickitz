@@ -5,6 +5,8 @@ import (
 	"be-cinevo/utils"
 	"context"
 	"time"
+	"fmt"
+	"github.com/jackc/pgx/v5"
 )
 
 type UpdatedMovie struct {
@@ -15,6 +17,41 @@ type UpdatedMovie struct {
 	BackdropPath *string    `json:"backdrop_path"`
 	ReleaseDate  *time.Time `json:"release_date"`
 	Runtime      *int       `json:"runtime"`
+}
+
+func getOrCreateGenreID(tx pgx.Tx, genre dto.GenreRequest) (int, error) {
+	if genre.ID != nil {
+		return *genre.ID, nil
+	}
+	
+	var id int
+	err := tx.QueryRow(
+		context.Background(),
+		"INSERT INTO genres (name) VALUES ($1) ON CONFLICT (name) DO UPDATE SET name = EXCLUDED.name RETURNING id",
+		*genre.Name,
+	).Scan(&id)
+	
+	return id, err
+}
+
+func getOrCreatePersonID(tx pgx.Tx, table string, person dto.PersonRequest) (int, error) {
+	if person.ID != nil {
+		return *person.ID, nil
+	}
+	
+	var id int
+	query := fmt.Sprintf(
+		"INSERT INTO %s (name) VALUES ($1) ON CONFLICT (name) DO UPDATE SET name = EXCLUDED.name RETURNING id",
+		table,
+	)
+	
+	err := tx.QueryRow(
+		context.Background(),
+		query,
+		*person.Name,
+	).Scan(&id)
+	
+	return id, err
 }
 
 func CreateNewMovie(req dto.MovieRequest) error {
@@ -31,39 +68,56 @@ func CreateNewMovie(req dto.MovieRequest) error {
 
 	query := `
 	INSERT INTO movies (title, overview, vote_average, poster_path, backdrop_path, release_date, runtime, admin_id)
-  VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING id
+	VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING id
 	`
-
+	
 	var movieID int
-	err = tx.QueryRow(context.Background(), query,
+	err = tx.QueryRow(
+		context.Background(),
+		query,
 		req.Title, req.Overview, req.VoteAverage, req.PosterPath, req.BackdropPath, req.ReleaseDate, req.Runtime, 1,
 	).Scan(&movieID)
-	if err != nil {
-		return err
-	}
-
-	for _, genreID := range req.Genres {
-		query = `INSERT INTO movie_genres (movie_id, genre_id) VALUES ($1, $2)`
-		_, err = tx.Exec(context.Background(), query, movieID, genreID)
+	
+	// Handle genres
+	for _, genre := range req.Genres {
+		genreID, err := getOrCreateGenreID(tx, genre)
 		if err != nil {
 			return err
 		}
+		
+		_, err = tx.Exec(
+			context.Background(),
+			"INSERT INTO movie_genres (movie_id, genre_id) VALUES ($1, $2)",
+			movieID, genreID,
+		)
 	}
-
-	for _, directorID := range req.Directors {
-		query = `INSERT INTO movie_directors (movie_id, director_id) VALUES ($1, $2)`
-		_, err = tx.Exec(context.Background(), query, movieID, directorID)
+	
+	// Handle directors
+	for _, director := range req.Directors {
+		directorID, err := getOrCreatePersonID(tx, "directors", director)
 		if err != nil {
 			return err
 		}
+		
+		_, err = tx.Exec(
+			context.Background(),
+			"INSERT INTO movie_directors (movie_id, director_id) VALUES ($1, $2)",
+			movieID, directorID,
+		)
 	}
-
-	for _, castID := range req.Casts {
-		query = `INSERT INTO movie_casts (movie_id, cast_id) VALUES ($1, $2)`
-		_, err = tx.Exec(context.Background(), query, movieID, castID)
+	
+	// Handle casts
+	for _, cast := range req.Casts {
+		castID, err := getOrCreatePersonID(tx, "casts", cast)
 		if err != nil {
 			return err
 		}
+		
+		_, err = tx.Exec(
+			context.Background(),
+			"INSERT INTO movie_casts (movie_id, cast_id) VALUES ($1, $2)",
+			movieID, castID,
+		)
 	}
 
 	if err := tx.Commit(context.Background()); err != nil {
