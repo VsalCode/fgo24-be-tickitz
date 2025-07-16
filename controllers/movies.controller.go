@@ -165,3 +165,75 @@ func GetMovieDetail(ctx *gin.Context) {
 		Results: movie,
 	})
 }
+
+// @Summary Get all genres
+// @Description Retrieve all genres
+// @Tags Movies
+// @Produce json
+// @Success 200 {object} utils.Response
+// @Router /movies/genres [get]
+func GetAllGenres(ctx *gin.Context) {
+	genres, err := models.FindAllGenres()
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, utils.Response{
+			Success: false,
+			Message: "Error fetching genres: ",
+			Errors: err.Error(),
+		})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, utils.Response{
+		Success: true,
+		Message: "Successfully retrieved genres",
+		Results:    genres,
+	})
+}
+
+// @Summary Get all casts
+// @Description Retrieve all casts
+// @Tags Movies
+// @Produce json
+// @Success 200 {object} utils.Response
+// @Router /movies/casts [get]
+func GetAllCasts(ctx *gin.Context) {
+	casts, err := models.FindAllCasts()
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, utils.Response{
+			Success: false,
+			Message: "Error fetching casts: ",
+			Errors: err.Error(),
+		})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, utils.Response{
+		Success: true,
+		Message: "Successfully retrieved casts",
+		Results:    casts,
+	})
+}
+
+// @Summary Get all directors
+// @Description Retrieve all directors
+// @Tags Movies
+// @Produce json
+// @Success 200 {object} utils.Response
+// @Router /movies/directors [get]
+func GetAllDirectors(ctx *gin.Context) {
+	directors, err := models.FindAllDirectors()
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, utils.Response{
+			Success: false,
+			Message: "Error fetching directors: ",
+			Errors: err.Error(),
+		})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, utils.Response{
+		Success: true,
+		Message: "Successfully retrieved directors",
+		Results:    directors,
+	})
+}

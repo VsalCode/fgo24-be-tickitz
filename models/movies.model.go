@@ -50,6 +50,21 @@ func toMovieResponse(m Movie) dto.MovieResponse {
 	}
 }
 
+type Genre struct {
+	ID   int    `json:"id" db:"id"`
+	Name string `json:"name" db:"name"`
+}
+
+type Cast struct {
+	ID   int    `json:"id" db:"id"`
+	Name string `json:"name" db:"name"`
+}
+
+type Director struct {
+	ID   int    `json:"id" db:"id"`
+	Name string `json:"name" db:"name"`
+}
+
 func HandleShowAllMovies(key string, limit int, offset int, filter string) ([]dto.MovieResponse, int, error) {
 	conn, err := utils.DBConnect()
 	if err != nil {
@@ -262,4 +277,76 @@ func FindMovieById(id int) (*dto.MovieResponse, error) {
 
 	movie := toMovieResponse(dbMovies[0])
 	return &movie, nil
+}
+
+func FindAllGenres() ([]Genre, error) {
+
+	conn, err := utils.DBConnect()
+	if err != nil {
+		return nil, fmt.Errorf("database connection failed: %w", err)
+	}
+	defer conn.Close()
+
+	query := `SELECT id, name FROM genres ORDER BY id`
+
+	rows, err := conn.Query(context.Background(), query)
+	if err != nil {
+		return nil, fmt.Errorf("query execution failed: %w", err)
+	}
+	defer rows.Close()
+
+	genres, err := pgx.CollectRows(rows, pgx.RowToStructByName[Genre])
+	if err != nil {
+		return nil, fmt.Errorf("collect rows failed: %w", err)
+	}
+
+	return genres, nil
+}
+
+func FindAllCasts() ([]Cast, error) {
+
+	conn, err := utils.DBConnect()
+	if err != nil {
+		return nil, fmt.Errorf("database connection failed: %w", err)
+	}
+	defer conn.Close()
+
+	query := `SELECT id, name FROM casts ORDER BY id`
+
+	rows, err := conn.Query(context.Background(), query)
+	if err != nil {
+		return nil, fmt.Errorf("query execution failed: %w", err)
+	}
+	defer rows.Close()
+
+	casts, err := pgx.CollectRows(rows, pgx.RowToStructByName[Cast])
+	if err != nil {
+		return nil, fmt.Errorf("collect rows failed: %w", err)
+	}
+
+	return casts, nil
+}
+
+func FindAllDirectors() ([]Director, error) {
+
+	conn, err := utils.DBConnect()
+	if err != nil {
+		return nil, fmt.Errorf("database connection failed: %w", err)
+	}
+	defer conn.Close()
+
+	query := `SELECT id, name FROM directors ORDER BY id`
+
+	rows, err := conn.Query(context.Background(), query)
+	if err != nil {
+		return nil, fmt.Errorf("query execution failed: %w", err)
+	}
+	defer rows.Close()
+
+	directors, err := pgx.CollectRows(rows, pgx.RowToStructByName[Director])
+	if err != nil {
+		return nil, fmt.Errorf("collect rows failed: %w", err)
+	}
+
+	return directors, nil
 }

@@ -17,7 +17,6 @@ type UpdatedMovie struct {
 	Runtime      *int       `json:"runtime"`
 }
 
-
 func CreateNewMovie(req dto.MovieRequest) error {
 	conn, err := utils.DBConnect()
 	if err != nil {

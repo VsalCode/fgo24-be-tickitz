@@ -189,8 +189,8 @@ func TicketSales(ctx *gin.Context) {
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, utils.Response{
 			Success: false,
-			Message: "Internal Server Error",	
-			Errors: err.Error(),
+			Message: "Internal Server Error",
+			Errors:  err.Error(),
 		})
 		return
 	}
@@ -236,8 +236,8 @@ func SalesChart(ctx *gin.Context) {
 	if err != nil {
 		ctx.JSON(http.StatusInternalServerError, utils.Response{
 			Success: false,
-			Message: "Internal Server Error",	
-			Errors: err.Error(),
+			Message: "Internal Server Error",
+			Errors:  err.Error(),
 		})
 		return
 	}
@@ -248,4 +248,3 @@ func SalesChart(ctx *gin.Context) {
 		Results: data,
 	})
 }
-

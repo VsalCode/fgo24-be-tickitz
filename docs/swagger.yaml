@@ -523,6 +523,45 @@ paths:
       summary: Get movie details by ID
       tags:
       - Movies
+  /movies/casts:
+    get:
+      description: Retrieve all casts
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.Response'
+      summary: Get all casts
+      tags:
+      - Movies
+  /movies/directors:
+    get:
+      description: Retrieve all directors
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.Response'
+      summary: Get all directors
+      tags:
+      - Movies
+  /movies/genres:
+    get:
+      description: Retrieve all genres
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.Response'
+      summary: Get all genres
+      tags:
+      - Movies
   /movies/now-showing:
     get:
       description: Retrieve movies that are now showing
