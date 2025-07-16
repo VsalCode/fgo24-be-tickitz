@@ -136,10 +136,16 @@ func SendNewPassword(req dto.ForgotPasswordRequest) error {
 	if err != nil {
 		return err
 	}
+
+	passwordHash, err := utils.HashPassword(req.NewPassword)
+	if err != nil {
+		return fmt.Errorf("password hashing error: %v", err)
+	}
+
 	_, err = conn.Exec(
 		context.Background(),
 		`UPDATE users SET password=$1 WHERE email=$2`,
-		req.NewPassword, req.Email,
+		passwordHash, req.Email,
 	)
 	if err != nil {
 		return err
