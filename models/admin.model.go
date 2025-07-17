@@ -12,7 +12,7 @@ import (
 type UpdatedMovie struct {
 	Title        *string    `json:"title"`
 	Overview     *string    `json:"overview"`
-	VoteAverage  *int       `json:"vote_average"`
+	VoteAverage  *float64   `json:"vote_average"` 
 	PosterPath   *string    `json:"poster_path"`
 	BackdropPath *string    `json:"backdrop_path"`
 	ReleaseDate  *time.Time `json:"release_date"`
@@ -24,14 +24,21 @@ func getOrCreateGenreID(tx pgx.Tx, genre dto.GenreRequest) (int, error) {
 		return *genre.ID, nil
 	}
 	
-	var id int
-	err := tx.QueryRow(
-		context.Background(),
-		"INSERT INTO genres (name) VALUES ($1) ON CONFLICT (name) DO UPDATE SET name = EXCLUDED.name RETURNING id",
-		*genre.Name,
-	).Scan(&id)
+	if genre.Name != nil {
+		var id int
+		err := tx.QueryRow(
+			context.Background(),
+			`INSERT INTO genres (name) 
+			 VALUES ($1) 
+			 ON CONFLICT (name) DO UPDATE SET name = EXCLUDED.name 
+			 RETURNING id`,
+			*genre.Name,
+		).Scan(&id)
+		
+		return id, err
+	}
 	
-	return id, err
+	return 0, fmt.Errorf("genre must have either id or name")
 }
 
 func getOrCreatePersonID(tx pgx.Tx, table string, person dto.PersonRequest) (int, error) {
@@ -39,19 +46,26 @@ func getOrCreatePersonID(tx pgx.Tx, table string, person dto.PersonRequest) (int
 		return *person.ID, nil
 	}
 	
-	var id int
-	query := fmt.Sprintf(
-		"INSERT INTO %s (name) VALUES ($1) ON CONFLICT (name) DO UPDATE SET name = EXCLUDED.name RETURNING id",
-		table,
-	)
+	if person.Name != nil {
+		var id int
+		query := fmt.Sprintf(
+			`INSERT INTO %s (name) 
+			 VALUES ($1) 
+			 ON CONFLICT (name) DO UPDATE SET name = EXCLUDED.name 
+			 RETURNING id`,
+			table,
+		)
+		
+		err := tx.QueryRow(
+			context.Background(),
+			query,
+			*person.Name,
+		).Scan(&id)
+		
+		return id, err
+	}
 	
-	err := tx.QueryRow(
-		context.Background(),
-		query,
-		*person.Name,
-	).Scan(&id)
-	
-	return id, err
+	return 0, fmt.Errorf("person must have either id or name")
 }
 
 func CreateNewMovie(req dto.MovieRequest) error {
@@ -59,6 +73,7 @@ func CreateNewMovie(req dto.MovieRequest) error {
 	if err != nil {
 		return err
 	}
+	defer conn.Close()
 
 	tx, err := conn.Begin(context.Background())
 	if err != nil {
@@ -66,23 +81,33 @@ func CreateNewMovie(req dto.MovieRequest) error {
 	}
 	defer tx.Rollback(context.Background())
 
+	// Parse release date
+	releaseDate, err := time.Parse("2006-01-02", req.ReleaseDate)
+	if err != nil {
+		return fmt.Errorf("invalid release date format: %v", err)
+	}
+
+	// Insert movie (removed ID from frontend, let DB auto-increment)
 	query := `
-	INSERT INTO movies (title, overview, vote_average, poster_path, backdrop_path, release_date, runtime, admin_id)
-	VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING id
+		INSERT INTO movies (title, overview, vote_average, poster_path, backdrop_path, release_date, runtime, admin_id)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING id
 	`
 	
 	var movieID int
 	err = tx.QueryRow(
 		context.Background(),
 		query,
-		req.Title, req.Overview, req.VoteAverage, req.PosterPath, req.BackdropPath, req.ReleaseDate, req.Runtime, 1,
+		req.Title, req.Overview, req.VoteAverage, req.PosterPath, req.BackdropPath, releaseDate, req.Runtime, 1,
 	).Scan(&movieID)
+	if err != nil {
+		return fmt.Errorf("failed to insert movie: %v", err)
+	}
 	
 	// Handle genres
 	for _, genre := range req.Genres {
 		genreID, err := getOrCreateGenreID(tx, genre)
 		if err != nil {
-			return err
+			return fmt.Errorf("failed to handle genre: %v", err)
 		}
 		
 		_, err = tx.Exec(
@@ -90,13 +115,16 @@ func CreateNewMovie(req dto.MovieRequest) error {
 			"INSERT INTO movie_genres (movie_id, genre_id) VALUES ($1, $2)",
 			movieID, genreID,
 		)
+		if err != nil {
+			return fmt.Errorf("failed to insert movie genre: %v", err)
+		}
 	}
 	
 	// Handle directors
 	for _, director := range req.Directors {
 		directorID, err := getOrCreatePersonID(tx, "directors", director)
 		if err != nil {
-			return err
+			return fmt.Errorf("failed to handle director: %v", err)
 		}
 		
 		_, err = tx.Exec(
@@ -104,13 +132,16 @@ func CreateNewMovie(req dto.MovieRequest) error {
 			"INSERT INTO movie_directors (movie_id, director_id) VALUES ($1, $2)",
 			movieID, directorID,
 		)
+		if err != nil {
+			return fmt.Errorf("failed to insert movie director: %v", err)
+		}
 	}
 	
 	// Handle casts
 	for _, cast := range req.Casts {
 		castID, err := getOrCreatePersonID(tx, "casts", cast)
 		if err != nil {
-			return err
+			return fmt.Errorf("failed to handle cast: %v", err)
 		}
 		
 		_, err = tx.Exec(
@@ -118,10 +149,13 @@ func CreateNewMovie(req dto.MovieRequest) error {
 			"INSERT INTO movie_casts (movie_id, cast_id) VALUES ($1, $2)",
 			movieID, castID,
 		)
+		if err != nil {
+			return fmt.Errorf("failed to insert movie cast: %v", err)
+		}
 	}
 
 	if err := tx.Commit(context.Background()); err != nil {
-		return err
+		return fmt.Errorf("failed to commit transaction: %v", err)
 	}
 
 	return nil
@@ -132,11 +166,9 @@ func DeleteMovieById(id int) error {
 	if err != nil {
 		return err
 	}
-
 	defer conn.Close()
 
 	query := `DELETE FROM movies WHERE id = $1`
-
 	_, err = conn.Exec(context.Background(), query, id)
 	if err != nil {
 		return err
@@ -155,7 +187,7 @@ func GetUpdatedMovie(id int, req UpdatedMovie) error {
 	var (
 		title        string
 		overview     string
-		voteAverage  int
+		voteAverage  float64  // Changed from int to float64
 		posterPath   string
 		backdropPath string
 		releaseDate  time.Time
@@ -205,7 +237,7 @@ func GetUpdatedMovie(id int, req UpdatedMovie) error {
 	_, err = conn.Exec(
 		context.Background(),
 		`
-    UPDATE movies
+		UPDATE movies
 		SET
 			title = $1,
 			overview = $2,

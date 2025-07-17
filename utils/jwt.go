@@ -8,7 +8,7 @@ import (
 
 func GenerateToken(userId int, role string) (string, error) {
 
-	expirationTime := time.Now().Add(15 * time.Minute)
+	expirationTime := time.Now().Add(12 * time.Hour)
 	claims := jwt.MapClaims{
 		"userId": userId,
 		"role":   role,
